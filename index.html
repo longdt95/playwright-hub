@@ -1,0 +1,1876 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Playwright Hub — Học Playwright cho người mới</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0e10;
+    --bg-2: #15171b;
+    --bg-3: #1c1f25;
+    --line: #2a2d35;
+    --text: #e8e6df;
+    --text-dim: #9a9892;
+    --text-mute: #6b6862;
+    --accent: #d4ff3a;
+    --accent-2: #ff6b3d;
+    --accent-3: #5eead4;
+    --warn: #ffcc66;
+    --danger: #ff5e7e;
+    --code-bg: #0a0b0d;
+    --code-border: #23262d;
+    --shadow: 0 1px 0 rgba(255,255,255,0.03), 0 8px 32px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font-family: 'Inter Tight', sans-serif; -webkit-font-smoothing: antialiased; }
+  body {
+    background-image:
+      radial-gradient(at 12% 8%, rgba(212,255,58,0.06) 0px, transparent 50%),
+      radial-gradient(at 88% 12%, rgba(94,234,212,0.04) 0px, transparent 45%),
+      radial-gradient(at 50% 100%, rgba(255,107,61,0.03) 0px, transparent 55%);
+    min-height: 100vh;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.5;
+  }
+
+  /* ============ LAYOUT ============ */
+  .app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; position: relative; z-index: 2; }
+
+  /* ============ SIDEBAR ============ */
+  .sidebar {
+    background: var(--bg-2);
+    border-right: 1px solid var(--line);
+    padding: 28px 0;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .brand {
+    padding: 0 24px 24px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 20px;
+  }
+  .brand-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Fraunces', serif;
+    font-weight: 900; font-size: 28px; letter-spacing: -0.03em;
+    color: var(--text);
+  }
+  .brand-logo .dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 24px var(--accent);
+  }
+  .brand-sub {
+    font-size: 11px; color: var(--text-mute);
+    text-transform: uppercase; letter-spacing: 0.2em;
+    margin-top: 6px; font-family: 'JetBrains Mono', monospace;
+  }
+  .nav-section { padding: 0 16px; margin-bottom: 22px; }
+  .nav-section h3 {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em;
+    color: var(--text-mute); padding: 0 8px 10px; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .nav-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; margin: 2px 0; border-radius: 8px;
+    cursor: pointer; font-size: 14px; color: var(--text-dim);
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+  }
+  .nav-item:hover { background: var(--bg-3); color: var(--text); }
+  .nav-item.active {
+    background: var(--bg-3); color: var(--accent);
+    border-color: var(--line);
+  }
+  .nav-item .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--text-mute);
+  }
+  .nav-item.active .num { color: var(--accent); }
+
+  /* ============ MAIN ============ */
+  .main { padding: 36px 56px 80px; max-width: 1100px; }
+  .topbar {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 32px; position: sticky; top: 0; z-index: 10;
+    background: rgba(13,14,16,0.85); backdrop-filter: blur(12px);
+    padding: 16px 0; margin-top: -20px; padding-top: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .search-wrap {
+    flex: 1; position: relative;
+  }
+  .search-input {
+    width: 100%; padding: 14px 18px 14px 48px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: var(--text); font-size: 15px;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .search-input:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(212,255,58,0.1);
+  }
+  .search-input::placeholder { color: var(--text-mute); }
+  .search-icon {
+    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+    color: var(--text-mute); pointer-events: none;
+  }
+  .search-shortcut {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--text-mute); background: var(--bg-3);
+    padding: 3px 7px; border-radius: 5px; border: 1px solid var(--line);
+  }
+  .search-results {
+    position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+    background: var(--bg-2); border: 1px solid var(--line);
+    border-radius: 12px; max-height: 480px; overflow-y: auto;
+    box-shadow: var(--shadow); z-index: 50; display: none;
+  }
+  .search-results.show { display: block; }
+  .search-result {
+    padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--line);
+    transition: background 0.1s;
+  }
+  .search-result:last-child { border-bottom: none; }
+  .search-result:hover, .search-result.hl { background: var(--bg-3); }
+  .search-result .sr-title {
+    font-weight: 600; font-size: 14px; color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .search-result .sr-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    background: var(--bg-3); color: var(--accent);
+    padding: 2px 7px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .search-result .sr-tag-locator   { color: #d4ff3a; background: rgba(212,255,58,0.08); }
+  .search-result .sr-tag-action    { color: #5eead4; background: rgba(94,234,212,0.08); }
+  .search-result .sr-tag-assertion { color: #ff6b3d; background: rgba(255,107,61,0.08); }
+  .search-result .sr-tag-filter    { color: #ffcc66; background: rgba(255,204,102,0.08); }
+  .search-result .sr-tag-page      { color: #c4b5fd; background: rgba(196,181,253,0.08); }
+  .search-result .sr-tag-test      { color: #f0abfc; background: rgba(240,171,252,0.08); }
+  .search-result .sr-tag-network   { color: #fda4af; background: rgba(253,164,175,0.08); }
+  .search-result .sr-tag-expect    { color: #93c5fd; background: rgba(147,197,253,0.08); }
+  .search-result .sr-snippet {
+    font-size: 12px; color: var(--text-mute); margin-top: 6px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .search-result mark {
+    background: rgba(212,255,58,0.25); color: var(--accent); padding: 0 2px; border-radius: 2px;
+  }
+  .search-empty {
+    padding: 24px; text-align: center; color: var(--text-mute); font-size: 14px;
+  }
+
+  /* ============ CONTENT ============ */
+  .hero {
+    padding: 32px 0 48px; border-bottom: 1px solid var(--line); margin-bottom: 40px;
+  }
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: var(--accent); margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-family: 'Fraunces', serif; font-weight: 900;
+    font-size: clamp(40px, 6vw, 72px); line-height: 0.95;
+    letter-spacing: -0.04em; margin-bottom: 20px;
+  }
+  .hero h1 .italic { font-style: italic; color: var(--accent); font-weight: 400; }
+  .hero p {
+    font-size: 18px; color: var(--text-dim); max-width: 640px; line-height: 1.6;
+  }
+  .hero-stats {
+    display: flex; gap: 32px; margin-top: 32px;
+    padding-top: 28px; border-top: 1px solid var(--line);
+  }
+  .stat .stat-num {
+    font-family: 'Fraunces', serif; font-weight: 800;
+    font-size: 32px; color: var(--accent); line-height: 1;
+  }
+  .stat .stat-lbl {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--text-mute); margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .page { display: none; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .page-title {
+    font-family: 'Fraunces', serif; font-weight: 800;
+    font-size: 48px; letter-spacing: -0.03em;
+    margin-bottom: 12px; line-height: 1;
+  }
+  .page-subtitle {
+    color: var(--text-dim); font-size: 16px; margin-bottom: 36px; max-width: 700px;
+  }
+
+  /* ============ SECTIONS ============ */
+  section { margin-bottom: 56px; scroll-margin-top: 90px; }
+  section h2 {
+    font-family: 'Fraunces', serif; font-weight: 700;
+    font-size: 28px; letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    display: flex; align-items: baseline; gap: 14px;
+  }
+  section h2 .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: var(--accent);
+    font-weight: 500;
+  }
+  section h3 {
+    font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: 20px; margin: 28px 0 10px;
+    color: var(--text);
+  }
+  section p {
+    color: var(--text-dim); line-height: 1.7;
+    margin-bottom: 14px; font-size: 15px;
+  }
+  section p strong { color: var(--text); font-weight: 600; }
+  section p code, li code {
+    background: var(--bg-3); color: var(--accent-3);
+    padding: 2px 6px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    border: 1px solid var(--line);
+  }
+  section ul { margin: 12px 0 16px 0; }
+  section li {
+    color: var(--text-dim); line-height: 1.7;
+    margin-bottom: 6px; font-size: 15px;
+    padding-left: 24px; position: relative;
+    list-style: none;
+  }
+  section li::before {
+    content: "→"; position: absolute; left: 0; top: 0;
+    color: var(--accent); font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ============ CODE BLOCKS ============ */
+  .code-block {
+    background: var(--code-bg); border: 1px solid var(--code-border);
+    border-radius: 10px; margin: 16px 0 24px;
+    overflow: hidden; position: relative;
+  }
+  .code-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px; background: var(--bg-3);
+    border-bottom: 1px solid var(--code-border);
+  }
+  .code-lang {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--text-mute);
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .code-copy {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--text-mute);
+    background: none; border: 1px solid var(--line);
+    padding: 4px 10px; border-radius: 5px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .code-copy:hover { color: var(--accent); border-color: var(--accent); }
+  .code-copy.copied { color: var(--accent); border-color: var(--accent); }
+  pre {
+    margin: 0; padding: 18px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; line-height: 1.7;
+    overflow-x: auto; color: var(--text);
+  }
+  /* simple syntax highlight */
+  .tk-kw { color: #ff79c6; }
+  .tk-str { color: #d4ff3a; }
+  .tk-fn { color: #5eead4; }
+  .tk-com { color: #6b6862; font-style: italic; }
+  .tk-num { color: #ffcc66; }
+  .tk-pun { color: #9a9892; }
+
+  /* ============ CARDS ============ */
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px; margin: 20px 0;
+  }
+  .card {
+    background: var(--bg-2); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px;
+    transition: all 0.2s;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card-icon {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--accent); margin-bottom: 10px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .card h4 {
+    font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: 17px; margin-bottom: 6px; color: var(--text);
+  }
+  .card p { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin: 0; }
+
+  /* ============ CALLOUTS ============ */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--bg-2);
+    padding: 14px 18px; margin: 16px 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout.tip { border-left-color: var(--accent-3); }
+  .callout .callout-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--accent); margin-bottom: 6px; font-weight: 600;
+  }
+  .callout.warn .callout-label { color: var(--warn); }
+  .callout.tip .callout-label { color: var(--accent-3); }
+  .callout p { margin: 0; font-size: 14px; color: var(--text-dim); }
+
+  /* ============ TABLE ============ */
+  table {
+    width: 100%; border-collapse: collapse; margin: 16px 0;
+    background: var(--bg-2); border-radius: 8px; overflow: hidden;
+    border: 1px solid var(--line);
+  }
+  th, td {
+    padding: 12px 16px; text-align: left; font-size: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  th {
+    background: var(--bg-3); color: var(--text);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;
+  }
+  td { color: var(--text-dim); }
+  td:first-child { color: var(--accent-3); font-family: 'JetBrains Mono', monospace; }
+  tr:last-child td { border-bottom: none; }
+
+  /* ============ FOOTER ============ */
+  .footer {
+    margin-top: 80px; padding-top: 32px;
+    border-top: 1px solid var(--line);
+    color: var(--text-mute); font-size: 13px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  /* ============ MOBILE ============ */
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { position: relative; height: auto; }
+    .main { padding: 20px 24px 60px; }
+    .hero h1 { font-size: 44px; }
+    .page-title { font-size: 36px; }
+  }
+
+  /* Search target highlight */
+  .search-target-flash {
+    animation: flashTarget 2.2s ease-out;
+    border-radius: 8px;
+  }
+  @keyframes flashTarget {
+    0%   { box-shadow: 0 0 0 4px rgba(212,255,58,0.45); background: rgba(212,255,58,0.10); }
+    60%  { box-shadow: 0 0 0 4px rgba(212,255,58,0.25); background: rgba(212,255,58,0.05); }
+    100% { box-shadow: 0 0 0 0 rgba(212,255,58,0);     background: transparent; }
+  }
+  .code-line-flash {
+    display: inline-block;
+    width: 100%;
+    background: rgba(212,255,58,0.18);
+    box-shadow: inset 3px 0 0 var(--accent);
+    padding-left: 8px; margin-left: -8px;
+    animation: lineFade 3s ease-out forwards;
+  }
+  @keyframes lineFade {
+    0%   { background: rgba(212,255,58,0.35); }
+    100% { background: rgba(212,255,58,0.0); box-shadow: inset 3px 0 0 transparent; }
+  }
+  /* code block targeted */
+  .code-block.search-hit {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 1px var(--accent), 0 8px 32px rgba(212,255,58,0.15);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 5px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--line); }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- =================== SIDEBAR =================== -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-logo"><span class="dot"></span>Playwright<span style="color:var(--accent);font-style:italic;">.hub</span></div>
+    <div class="brand-sub">Học testing từ A → Z</div>
+  </div>
+
+  <div class="nav-section">
+    <h3>Bắt đầu</h3>
+    <div class="nav-item active" data-page="home"><span>Trang chủ</span><span class="num">00</span></div>
+    <div class="nav-item" data-page="intro"><span>Playwright là gì?</span><span class="num">01</span></div>
+    <div class="nav-item" data-page="install"><span>Cài đặt</span><span class="num">02</span></div>
+  </div>
+
+  <div class="nav-section">
+    <h3>Lộ trình</h3>
+    <div class="nav-item" data-page="first-test"><span>Test đầu tiên</span><span class="num">03</span></div>
+    <div class="nav-item" data-page="locators"><span>Locators</span><span class="num">04</span></div>
+    <div class="nav-item" data-page="actions"><span>Actions</span><span class="num">05</span></div>
+    <div class="nav-item" data-page="assertions"><span>Assertions</span><span class="num">06</span></div>
+    <div class="nav-item" data-page="auto-wait"><span>Auto-waiting</span><span class="num">07</span></div>
+    <div class="nav-item" data-page="fixtures"><span>Fixtures & Hooks</span><span class="num">08</span></div>
+    <div class="nav-item" data-page="pom"><span>Page Object Model</span><span class="num">09</span></div>
+  </div>
+
+  <div class="nav-section">
+    <h3>Nâng cao</h3>
+    <div class="nav-item" data-page="advanced"><span>Network & API</span><span class="num">10</span></div>
+    <div class="nav-item" data-page="debug"><span>Debug & Trace</span><span class="num">11</span></div>
+    <div class="nav-item" data-page="ci"><span>CI/CD</span><span class="num">12</span></div>
+  </div>
+
+  <div class="nav-section">
+    <h3>Tra cứu</h3>
+    <div class="nav-item" data-page="cheatsheet"><span>Cheatsheet</span><span class="num">★</span></div>
+    <div class="nav-item" data-page="resources"><span>Tài nguyên</span><span class="num">♦</span></div>
+  </div>
+</aside>
+
+<!-- =================== MAIN =================== -->
+<main class="main">
+
+  <!-- TOPBAR / SEARCH -->
+  <div class="topbar">
+    <div class="search-wrap">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="search-input" id="search" placeholder="Tìm lệnh... (click, fill, getByRole, toBeVisible, expect, ...)" autocomplete="off"/>
+      <span class="search-shortcut">⌘ K</span>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+  </div>
+
+  <!-- ============ PAGE: HOME ============ -->
+  <div class="page active" data-page="home">
+    <div class="hero">
+      <div class="hero-eyebrow">// playwright cho người mới bắt đầu</div>
+      <h1>Học Playwright,<br/><span class="italic">không lạc đường.</span></h1>
+      <p>Tất cả những gì cần biết để viết test tự động cho web — từ cài đặt đầu tiên đến CI/CD — gói gọn trong một nơi. Có search nhanh, có ví dụ chạy được, có lộ trình rõ ràng.</p>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-num">12</div><div class="stat-lbl">Chương học</div></div>
+        <div class="stat"><div class="stat-num">60+</div><div class="stat-lbl">Ví dụ code</div></div>
+        <div class="stat"><div class="stat-num">100%</div><div class="stat-lbl">TypeScript</div></div>
+      </div>
+    </div>
+
+    <h2><span class="section-num">→</span> Bắt đầu từ đâu?</h2>
+    <p>Nếu bạn chưa bao giờ viết test, hãy đi theo thứ tự từ chương <strong>01 đến 09</strong>. Mỗi chương khoảng 10-15 phút đọc + thực hành. Nếu cần tra cứu nhanh, dùng ô <code>search</code> hoặc xem <strong>Cheatsheet</strong>.</p>
+
+    <div class="card-grid">
+      <div class="card" onclick="goPage('intro')">
+        <div class="card-icon">01 — start here</div>
+        <h4>Playwright là gì?</h4>
+        <p>Hiểu công cụ này dùng để làm gì và tại sao nó tốt hơn Selenium.</p>
+      </div>
+      <div class="card" onclick="goPage('install')">
+        <div class="card-icon">02 — setup</div>
+        <h4>Cài đặt</h4>
+        <p>npm init playwright — 3 phút từ zero đến test đầu tiên chạy được.</p>
+      </div>
+      <div class="card" onclick="goPage('locators')">
+        <div class="card-icon">04 — core concept</div>
+        <h4>Locators</h4>
+        <p>Cách "chỉ tay" vào element — kỹ năng quan trọng nhất.</p>
+      </div>
+      <div class="card" onclick="goPage('cheatsheet')">
+        <div class="card-icon">★ — reference</div>
+        <h4>Cheatsheet</h4>
+        <p>Tất cả lệnh hay dùng nhất, gom trong 1 trang.</p>
+      </div>
+    </div>
+
+    <div class="callout tip" style="margin-top:32px">
+      <div class="callout-label">Mẹo học hiệu quả</div>
+      <p>Vừa đọc vừa gõ lại code vào máy. Đừng copy-paste. Não nhớ khi tay làm, không phải khi mắt nhìn.</p>
+    </div>
+  </div>
+
+  <!-- ============ PAGE: INTRO ============ -->
+  <div class="page" data-page="intro">
+    <h1 class="page-title">Playwright là gì?</h1>
+    <p class="page-subtitle">Một framework test tự động cho web do Microsoft phát triển. Viết code để máy tính tự click, gõ chữ, kiểm tra giao diện — thay vì làm bằng tay.</p>
+
+    <section>
+      <h2><span class="section-num">01.1</span> Vấn đề Playwright giải quyết</h2>
+      <p>Hãy tưởng tượng bạn vừa sửa code login. Bạn phải mở Chrome, gõ email, gõ password, bấm nút, kiểm tra xem có vào được dashboard không. Mỗi lần deploy là làm lại. 10 trang web khác cũng vậy. Mệt.</p>
+      <p>Playwright giúp bạn <strong>viết một lần</strong> — máy chạy 100 lần. Mỗi commit, mỗi đêm, mỗi pull request đều có thể kiểm tra lại tự động.</p>
+    </section>
+
+    <section>
+      <h2><span class="section-num">01.2</span> Tại sao chọn Playwright?</h2>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">⚡ tốc độ</div>
+          <h4>Nhanh hơn Selenium</h4>
+          <p>Giao tiếp với browser qua DevTools Protocol, không qua WebDriver chậm chạp.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎯 ổn định</div>
+          <h4>Auto-waiting</h4>
+          <p>Tự đợi element xuất hiện, không cần viết sleep() rườm rà.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🌐 đa trình duyệt</div>
+          <h4>Chromium, Firefox, WebKit</h4>
+          <p>Một API duy nhất chạy được cả 3 browser engine chính.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔧 đầy đủ</div>
+          <h4>Tool xịn sẵn</h4>
+          <p>Có codegen, trace viewer, test report — không cần lắp ghép thêm.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">01.3</span> So sánh nhanh</h2>
+      <table>
+        <thead><tr><th>Tiêu chí</th><th>Playwright</th><th>Cypress</th><th>Selenium</th></tr></thead>
+        <tbody>
+          <tr><td>Tốc độ</td><td>Rất nhanh</td><td>Nhanh</td><td>Chậm</td></tr>
+          <tr><td>Đa browser</td><td>Đầy đủ</td><td>Hạn chế</td><td>Đầy đủ</td></tr>
+          <tr><td>Đa tab/window</td><td>Có</td><td>Không tốt</td><td>Có</td></tr>
+          <tr><td>API testing</td><td>Built-in</td><td>Plugin</td><td>Không</td></tr>
+          <tr><td>Học khó dễ</td><td>Dễ-vừa</td><td>Dễ</td><td>Khó</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2><span class="section-num">01.4</span> Khi nào KHÔNG dùng Playwright?</h2>
+      <ul>
+        <li>Test app mobile native (iOS/Android) → dùng Appium</li>
+        <li>Test desktop app (Electron là một ngoại lệ — Playwright có support)</li>
+        <li>Load testing / performance testing → dùng k6 hoặc JMeter</li>
+        <li>Unit test cho component nhỏ → dùng Jest hoặc Vitest</li>
+      </ul>
+    </section>
+  </div>
+
+  <!-- ============ PAGE: INSTALL ============ -->
+  <div class="page" data-page="install">
+    <h1 class="page-title">Cài đặt Playwright</h1>
+    <p class="page-subtitle">Chỉ cần Node.js (≥ 18) và 3 phút. Lệnh init sẽ tự cài tất cả: dependencies, browsers, config, ví dụ test.</p>
+
+    <section>
+      <h2><span class="section-num">02.1</span> Cài bằng 1 lệnh</h2>
+      <p>Mở terminal trong thư mục project, chạy:</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com"># Tạo project Playwright mới</span>
+npm init playwright@latest</pre></div>
+
+      <p>Trình cài đặt sẽ hỏi vài câu:</p>
+      <ul>
+        <li><strong>TypeScript hay JavaScript?</strong> → Chọn TypeScript (gợi ý)</li>
+        <li><strong>Thư mục test?</strong> → mặc định <code>tests/</code></li>
+        <li><strong>GitHub Actions workflow?</strong> → có (để biết CI hoạt động sao)</li>
+        <li><strong>Cài browsers?</strong> → Có</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span class="section-num">02.2</span> Cấu trúc thư mục sinh ra</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">tree</span><button class="code-copy">Copy</button></div>
+<pre>my-project/
+├── tests/
+│   └── example.spec.ts        <span class="tk-com">// test mẫu</span>
+├── tests-examples/
+│   └── demo-todo-app.spec.ts  <span class="tk-com">// test phức tạp hơn để tham khảo</span>
+├── playwright.config.ts       <span class="tk-com">// cấu hình</span>
+├── package.json
+└── .github/workflows/
+    └── playwright.yml         <span class="tk-com">// CI workflow</span></pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">02.3</span> Chạy test đầu tiên</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com"># Chạy tất cả test</span>
+npx playwright test
+
+<span class="tk-com"># Chạy với UI mode (gợi ý cho người mới)</span>
+npx playwright test --ui
+
+<span class="tk-com"># Chỉ chạy 1 file</span>
+npx playwright test example.spec.ts
+
+<span class="tk-com"># Chạy trên 1 browser cụ thể</span>
+npx playwright test --project=chromium
+
+<span class="tk-com"># Xem report sau khi chạy</span>
+npx playwright show-report</pre></div>
+
+      <div class="callout tip">
+        <div class="callout-label">Mẹo</div>
+        <p>Luôn dùng <code>--ui</code> khi mới học. UI mode cho thấy từng bước test chạy, có timeline, có DOM snapshot — học gấp 10 lần đọc tài liệu.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">02.4</span> VS Code extension</h2>
+      <p>Cài extension <strong>"Playwright Test for VSCode"</strong> (do Microsoft phát hành). Sau khi cài:</p>
+      <ul>
+        <li>Có nút Run/Debug bên cạnh mỗi test</li>
+        <li>Record test bằng cách click vào browser</li>
+        <li>Pick locator bằng cách hover element</li>
+        <li>Hiển thị lỗi inline trong editor</li>
+      </ul>
+    </section>
+  </div>
+
+  <!-- ============ PAGE: FIRST TEST ============ -->
+  <div class="page" data-page="first-test">
+    <h1 class="page-title">Test đầu tiên</h1>
+    <p class="page-subtitle">Cấu trúc một test Playwright và hiểu từng dòng làm gì. Bắt đầu từ ví dụ kinh điển: mở Google, gõ tìm kiếm.</p>
+
+    <section>
+      <h2><span class="section-num">03.1</span> Anatomy của 1 test</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">import</span> { test, expect } <span class="tk-kw">from</span> <span class="tk-str">'@playwright/test'</span>;
+
+test(<span class="tk-str">'có chữ Playwright trên title'</span>, <span class="tk-kw">async</span> ({ page }) => {
+  <span class="tk-com">// 1. Đi tới trang web</span>
+  <span class="tk-kw">await</span> page.<span class="tk-fn">goto</span>(<span class="tk-str">'https://playwright.dev/'</span>);
+
+  <span class="tk-com">// 2. Kiểm tra title có chứa "Playwright"</span>
+  <span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveTitle</span>(<span class="tk-pun">/</span><span class="tk-str">Playwright</span><span class="tk-pun">/</span>);
+});</pre></div>
+
+      <p>Giải thích từng phần:</p>
+      <ul>
+        <li><code>import</code> — nạp test và expect từ thư viện Playwright</li>
+        <li><code>test('tên', async ...)</code> — định nghĩa 1 test case</li>
+        <li><code>{ page }</code> — Playwright tự cung cấp 1 trang web sạch cho mỗi test</li>
+        <li><code>await</code> — mọi action với browser đều bất đồng bộ (async)</li>
+        <li><code>expect(...).toHave...</code> — kiểm tra (assertion)</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span class="section-num">03.2</span> Test có tương tác</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre>test(<span class="tk-str">'login thành công'</span>, <span class="tk-kw">async</span> ({ page }) => {
+  <span class="tk-kw">await</span> page.<span class="tk-fn">goto</span>(<span class="tk-str">'https://example.com/login'</span>);
+
+  <span class="tk-com">// Gõ vào ô email</span>
+  <span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Email'</span>).<span class="tk-fn">fill</span>(<span class="tk-str">'user@test.com'</span>);
+
+  <span class="tk-com">// Gõ vào ô password</span>
+  <span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Password'</span>).<span class="tk-fn">fill</span>(<span class="tk-str">'123456'</span>);
+
+  <span class="tk-com">// Click nút Submit</span>
+  <span class="tk-kw">await</span> page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>, { name: <span class="tk-str">'Đăng nhập'</span> }).<span class="tk-fn">click</span>();
+
+  <span class="tk-com">// Kiểm tra URL chuyển sang dashboard</span>
+  <span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveURL</span>(<span class="tk-pun">/</span><span class="tk-str">dashboard</span><span class="tk-pun">/</span>);
+
+  <span class="tk-com">// Kiểm tra có chữ "Xin chào"</span>
+  <span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByText</span>(<span class="tk-str">'Xin chào'</span>)).<span class="tk-fn">toBeVisible</span>();
+});</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">03.3</span> Codegen — record test tự động</h2>
+      <p>Không cần gõ tay. Playwright có lệnh ghi lại hành động:</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="code-copy">Copy</button></div>
+<pre>npx playwright codegen https://example.com</pre></div>
+      <p>Browser sẽ mở ra, bạn thao tác như bình thường (click, gõ, scroll). Playwright tự sinh code TypeScript tương ứng. Cực kỳ hữu ích để học cú pháp ban đầu.</p>
+    </section>
+  </div>
+
+  <!-- ============ PAGE: LOCATORS ============ -->
+  <div class="page" data-page="locators">
+    <h1 class="page-title">Locators — Chỉ vào element</h1>
+    <p class="page-subtitle">Locator là cách bạn nói với Playwright "tôi muốn thao tác với cái nút này, không phải cái khác." Đây là khái niệm quan trọng nhất. Học locator tốt = test ổn định.</p>
+
+    <section>
+      <h2><span class="section-num">04.1</span> Triết lý: ưu tiên user-facing</h2>
+      <p>Playwright khuyên chọn locator giống cách <strong>người dùng thật</strong> nhận biết element — không phải CSS class hay ID trong code.</p>
+      <p>Lý do: developer đổi class name liên tục, nhưng "nút Đăng nhập" thì luôn là "nút Đăng nhập".</p>
+    </section>
+
+    <section>
+      <h2><span class="section-num">04.2</span> 7 loại locator chính (theo thứ tự ưu tiên)</h2>
+
+      <h3>1. <code>getByRole</code> — theo ARIA role</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre>page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>, { name: <span class="tk-str">'Đăng nhập'</span> })
+page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'link'</span>, { name: <span class="tk-str">'Trang chủ'</span> })
+page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'checkbox'</span>, { name: <span class="tk-str">'Đồng ý điều khoản'</span> })
+page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'heading'</span>, { level: <span class="tk-num">1</span> })</pre></div>
+
+      <h3>2. <code>getByLabel</code> — input theo label</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre>page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Email'</span>)
+page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Password'</span>)
+page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Tôi đồng ý'</span>)</pre></div>
+
+      <h3>3. <code>getByPlaceholder</code> — input chưa có label</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre>page.<span class="tk-fn">getByPlaceholder</span>(<span class="tk-str">'Nhập email của bạn'</span>)</pre></div>
+
+      <h3>4. <code>getByText</code> — theo chữ hiển thị</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre>page.<span class="tk-fn">getByText</span>(<span class="tk-str">'Welcome back'</span>)
+page.<span class="tk-fn">getByText</span>(<span class="tk-str">'Welcome'</span>, { exact: <span class="tk-kw">true</span> })  <span class="tk-com">// chính xác</span>
+page.<span class="tk-fn">getByText</span>(<span class="tk-pun">/</span><span class="tk-str">welcome</span><span class="tk-pun">/i</span>)             <span class="tk-com">// regex</span></pre></div>
+
+      <h3>5. <code>getByTestId</code> — qua data-testid attribute</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// HTML: &lt;button data-testid="submit-btn"&gt;Send&lt;/button&gt;</span>
+page.<span class="tk-fn">getByTestId</span>(<span class="tk-str">'submit-btn'</span>)</pre></div>
+
+      <h3>6. <code>getByTitle</code> — qua thuộc tính title</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre>page.<span class="tk-fn">getByTitle</span>(<span class="tk-str">'Issues count'</span>)</pre></div>
+
+      <h3>7. <code>locator</code> — CSS / XPath (cuối cùng mới dùng)</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre>page.<span class="tk-fn">locator</span>(<span class="tk-str">'.btn-primary'</span>)
+page.<span class="tk-fn">locator</span>(<span class="tk-str">'#main-form input[type="email"]'</span>)
+page.<span class="tk-fn">locator</span>(<span class="tk-str">'xpath=//button[contains(text(), "Save")]'</span>)</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">04.3</span> Kết hợp & lọc locator</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Có nhiều nút "Xóa" trên trang, chỉ lấy nút trong dòng có chữ "Apple"</span>
+page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'row'</span>, { name: <span class="tk-str">'Apple'</span> })
+    .<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>, { name: <span class="tk-str">'Xóa'</span> });
+
+<span class="tk-com">// Filter theo text</span>
+page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'listitem'</span>).<span class="tk-fn">filter</span>({ hasText: <span class="tk-str">'Nike'</span> });
+
+<span class="tk-com">// Filter theo locator con</span>
+page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'listitem'</span>).<span class="tk-fn">filter</span>({
+  has: page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'heading'</span>, { name: <span class="tk-str">'iPhone'</span> })
+});
+
+<span class="tk-com">// Lấy phần tử thứ N (index từ 0)</span>
+page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>).<span class="tk-fn">nth</span>(<span class="tk-num">2</span>);
+page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>).<span class="tk-fn">first</span>();
+page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>).<span class="tk-fn">last</span>();</pre></div>
+    </section>
+
+    <div class="callout warn">
+      <div class="callout-label">Tránh xa</div>
+      <p>Đừng dùng <code>page.locator('div > div > span.x-3 > button')</code>. Chuỗi CSS dài là dấu hiệu locator sẽ vỡ ngay khi UI thay đổi nhẹ. Thay vào đó hỏi developer thêm <code>data-testid</code>.</p>
+    </div>
+  </div>
+
+  <!-- ============ PAGE: ACTIONS ============ -->
+  <div class="page" data-page="actions">
+    <h1 class="page-title">Actions — Thao tác với element</h1>
+    <p class="page-subtitle">Khi đã có locator, bạn làm gì với nó? Click, gõ chữ, chọn dropdown, upload file...</p>
+
+    <section>
+      <h2><span class="section-num">05.1</span> Click & các biến thể</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> button.<span class="tk-fn">click</span>();                          <span class="tk-com">// click thường</span>
+<span class="tk-kw">await</span> button.<span class="tk-fn">dblclick</span>();                       <span class="tk-com">// double-click</span>
+<span class="tk-kw">await</span> button.<span class="tk-fn">click</span>({ button: <span class="tk-str">'right'</span> });        <span class="tk-com">// chuột phải</span>
+<span class="tk-kw">await</span> button.<span class="tk-fn">click</span>({ modifiers: [<span class="tk-str">'Shift'</span>] }); <span class="tk-com">// Shift+click</span>
+<span class="tk-kw">await</span> button.<span class="tk-fn">click</span>({ position: { x: <span class="tk-num">10</span>, y: <span class="tk-num">20</span> } });
+<span class="tk-kw">await</span> button.<span class="tk-fn">click</span>({ force: <span class="tk-kw">true</span> });           <span class="tk-com">// bỏ qua các kiểm tra</span>
+<span class="tk-kw">await</span> button.<span class="tk-fn">hover</span>();                          <span class="tk-com">// rê chuột lên</span></pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">05.2</span> Nhập liệu</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Điền ô input (xóa cũ, gõ mới)</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Email'</span>).<span class="tk-fn">fill</span>(<span class="tk-str">'a@b.com'</span>);
+
+<span class="tk-com">// Gõ từng ký tự (giả lập gõ phím chậm)</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Note'</span>).<span class="tk-fn">pressSequentially</span>(<span class="tk-str">'Hello'</span>, { delay: <span class="tk-num">100</span> });
+
+<span class="tk-com">// Xóa nội dung</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Email'</span>).<span class="tk-fn">clear</span>();
+
+<span class="tk-com">// Bấm phím</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">keyboard</span>.<span class="tk-fn">press</span>(<span class="tk-str">'Enter'</span>);
+<span class="tk-kw">await</span> page.<span class="tk-fn">keyboard</span>.<span class="tk-fn">press</span>(<span class="tk-str">'Control+A'</span>);
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'textbox'</span>).<span class="tk-fn">press</span>(<span class="tk-str">'Tab'</span>);</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">05.3</span> Checkbox, radio, dropdown</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Checkbox / radio</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Đồng ý'</span>).<span class="tk-fn">check</span>();
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Đồng ý'</span>).<span class="tk-fn">uncheck</span>();
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Nam'</span>).<span class="tk-fn">check</span>(); <span class="tk-com">// radio button</span>
+
+<span class="tk-com">// Dropdown &lt;select&gt;</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Quốc gia'</span>).<span class="tk-fn">selectOption</span>(<span class="tk-str">'VN'</span>);          <span class="tk-com">// theo value</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Quốc gia'</span>).<span class="tk-fn">selectOption</span>({ label: <span class="tk-str">'Việt Nam'</span> });
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Tags'</span>).<span class="tk-fn">selectOption</span>([<span class="tk-str">'red'</span>, <span class="tk-str">'green'</span>]);    <span class="tk-com">// multi</span></pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">05.4</span> Upload file</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Chọn file'</span>).<span class="tk-fn">setInputFiles</span>(<span class="tk-str">'./avatar.png'</span>);
+
+<span class="tk-com">// Upload nhiều file</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Files'</span>).<span class="tk-fn">setInputFiles</span>([<span class="tk-str">'a.pdf'</span>, <span class="tk-str">'b.pdf'</span>]);
+
+<span class="tk-com">// Xóa file đã chọn</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Files'</span>).<span class="tk-fn">setInputFiles</span>([]);</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">05.5</span> Drag & Drop, scroll, screenshot</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Drag & drop</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByText</span>(<span class="tk-str">'Item A'</span>).<span class="tk-fn">dragTo</span>(page.<span class="tk-fn">getByTestId</span>(<span class="tk-str">'dropzone'</span>));
+
+<span class="tk-com">// Scroll đến element</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByText</span>(<span class="tk-str">'Footer'</span>).<span class="tk-fn">scrollIntoViewIfNeeded</span>();
+
+<span class="tk-com">// Screenshot</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">screenshot</span>({ path: <span class="tk-str">'screen.png'</span> });
+<span class="tk-kw">await</span> page.<span class="tk-fn">screenshot</span>({ path: <span class="tk-str">'full.png'</span>, fullPage: <span class="tk-kw">true</span> });
+<span class="tk-kw">await</span> button.<span class="tk-fn">screenshot</span>({ path: <span class="tk-str">'just-button.png'</span> });</pre></div>
+    </section>
+  </div>
+
+  <!-- ============ PAGE: ASSERTIONS ============ -->
+  <div class="page" data-page="assertions">
+    <h1 class="page-title">Assertions — Kiểm tra kết quả</h1>
+    <p class="page-subtitle">Assertion = "tôi mong đợi điều này phải đúng". Nếu sai, test fail. Playwright có 2 loại: web assertion (auto-retry) và assertion thường.</p>
+
+    <section>
+      <h2><span class="section-num">06.1</span> Web assertions — có auto-retry</h2>
+      <p>Đây là <strong>điểm cực mạnh</strong> của Playwright. <code>expect(locator).toBeVisible()</code> sẽ tự đợi tối đa 5 giây để element hiện ra, không cần sleep().</p>
+
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Visibility / state</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeVisible</span>();
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeHidden</span>();
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeEnabled</span>();
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeDisabled</span>();
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeChecked</span>();
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeFocused</span>();
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeEmpty</span>();
+
+<span class="tk-com">// Text / value</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveText</span>(<span class="tk-str">'Xin chào'</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toContainText</span>(<span class="tk-str">'chào'</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveValue</span>(<span class="tk-str">'user@test.com'</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveCount</span>(<span class="tk-num">3</span>); <span class="tk-com">// số lượng element</span>
+
+<span class="tk-com">// Attribute / class / CSS</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveAttribute</span>(<span class="tk-str">'href'</span>, <span class="tk-str">'/about'</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveClass</span>(<span class="tk-pun">/</span><span class="tk-str">active</span><span class="tk-pun">/</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveCSS</span>(<span class="tk-str">'color'</span>, <span class="tk-str">'rgb(255, 0, 0)'</span>);
+
+<span class="tk-com">// Page-level</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveTitle</span>(<span class="tk-str">'My App'</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveURL</span>(<span class="tk-pun">/</span><span class="tk-str">dashboard</span><span class="tk-pun">/</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveScreenshot</span>(<span class="tk-str">'home.png'</span>); <span class="tk-com">// visual regression</span></pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">06.2</span> Phủ định với <code>.not</code></h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">not</span>.<span class="tk-fn">toBeVisible</span>();
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">not</span>.<span class="tk-fn">toHaveText</span>(<span class="tk-str">'Error'</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">not</span>.<span class="tk-fn">toBeChecked</span>();</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">06.3</span> Tùy chỉnh timeout</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Đợi tối đa 10 giây (mặc định là 5s)</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeVisible</span>({ timeout: <span class="tk-num">10000</span> });</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">06.4</span> Assertions thường (không retry)</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">const</span> count = <span class="tk-kw">await</span> page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'listitem'</span>).<span class="tk-fn">count</span>();
+<span class="tk-fn">expect</span>(count).<span class="tk-fn">toBe</span>(<span class="tk-num">5</span>);
+<span class="tk-fn">expect</span>(count).<span class="tk-fn">toBeGreaterThan</span>(<span class="tk-num">0</span>);
+
+<span class="tk-kw">const</span> text = <span class="tk-kw">await</span> page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'heading'</span>).<span class="tk-fn">textContent</span>();
+<span class="tk-fn">expect</span>(text).<span class="tk-fn">toMatch</span>(<span class="tk-pun">/</span><span class="tk-str">Welcome</span><span class="tk-pun">/</span>);</pre></div>
+
+      <div class="callout warn">
+        <div class="callout-label">Quan trọng</div>
+        <p>Web assertion (<code>await expect(loc).toBeVisible()</code>) ưu tiên hơn — vì có auto-retry. Chỉ dùng assertion thường khi bạn đã có giá trị cụ thể (số, chuỗi).</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ PAGE: AUTO-WAIT ============ -->
+  <div class="page" data-page="auto-wait">
+    <h1 class="page-title">Auto-waiting — Tại sao test ổn định</h1>
+    <p class="page-subtitle">Playwright tự động đợi element sẵn sàng trước khi thao tác. Hiểu cơ chế này = bớt 90% test flaky.</p>
+
+    <section>
+      <h2><span class="section-num">07.1</span> Playwright đợi cái gì?</h2>
+      <p>Trước mỗi action như <code>click()</code>, Playwright kiểm tra element có:</p>
+      <ul>
+        <li><strong>Attached</strong> — tồn tại trong DOM</li>
+        <li><strong>Visible</strong> — không bị <code>display:none</code></li>
+        <li><strong>Stable</strong> — không animation hoặc transition</li>
+        <li><strong>Enabled</strong> — không bị disabled</li>
+        <li><strong>Receives events</strong> — không bị element khác che</li>
+      </ul>
+      <p>Nếu chưa đạt, Playwright tự đợi (mặc định tối đa 30 giây).</p>
+    </section>
+
+    <section>
+      <h2><span class="section-num">07.2</span> Khi nào cần đợi thủ công?</h2>
+      <p>Hầu hết trường hợp <strong>không cần</strong>. Tuy nhiên có vài trường hợp đặc biệt:</p>
+
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Đợi URL khớp pattern</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">waitForURL</span>(<span class="tk-pun">/</span><span class="tk-str">dashboard</span><span class="tk-pun">/</span>);
+
+<span class="tk-com">// Đợi network response</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">waitForResponse</span>(resp =>
+  resp.<span class="tk-fn">url</span>().<span class="tk-fn">includes</span>(<span class="tk-str">'/api/users'</span>) && resp.<span class="tk-fn">status</span>() === <span class="tk-num">200</span>
+);
+
+<span class="tk-com">// Đợi load state (load, domcontentloaded, networkidle)</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">waitForLoadState</span>(<span class="tk-str">'networkidle'</span>);
+
+<span class="tk-com">// Đợi event tùy chỉnh</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">waitForFunction</span>(() => window.<span class="tk-fn">dataLoaded</span> === <span class="tk-kw">true</span>);</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">07.3</span> ❌ Tuyệt đối tránh</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// ❌ KHÔNG dùng hardcode sleep</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">waitForTimeout</span>(<span class="tk-num">3000</span>);
+
+<span class="tk-com">// ✅ Thay vào đó: đợi điều kiện cụ thể</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByText</span>(<span class="tk-str">'Loaded'</span>)).<span class="tk-fn">toBeVisible</span>();</pre></div>
+      <p><code>waitForTimeout</code> chỉ nên dùng tạm khi debug, không bao giờ trong test thật.</p>
+    </section>
+  </div>
+
+  <!-- ============ PAGE: FIXTURES ============ -->
+  <div class="page" data-page="fixtures">
+    <h1 class="page-title">Fixtures & Hooks</h1>
+    <p class="page-subtitle">Fixtures là cách chia sẻ setup giữa các test (login sẵn, dữ liệu test, browser custom). Hooks là code chạy trước/sau test.</p>
+
+    <section>
+      <h2><span class="section-num">08.1</span> Hooks cơ bản</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">import</span> { test, expect } <span class="tk-kw">from</span> <span class="tk-str">'@playwright/test'</span>;
+
+test.<span class="tk-fn">describe</span>(<span class="tk-str">'Trang Sản phẩm'</span>, () => {
+  test.<span class="tk-fn">beforeAll</span>(<span class="tk-kw">async</span> () => {
+    <span class="tk-com">// Chạy 1 lần trước tất cả test trong describe này</span>
+  });
+
+  test.<span class="tk-fn">beforeEach</span>(<span class="tk-kw">async</span> ({ page }) => {
+    <span class="tk-com">// Chạy trước MỖI test</span>
+    <span class="tk-kw">await</span> page.<span class="tk-fn">goto</span>(<span class="tk-str">'/products'</span>);
+  });
+
+  test.<span class="tk-fn">afterEach</span>(<span class="tk-kw">async</span> ({ page }) => {
+    <span class="tk-com">// Chạy sau mỗi test (cleanup)</span>
+  });
+
+  test.<span class="tk-fn">afterAll</span>(<span class="tk-kw">async</span> () => {
+    <span class="tk-com">// Chạy 1 lần sau tất cả</span>
+  });
+
+  test(<span class="tk-str">'hiển thị danh sách'</span>, <span class="tk-kw">async</span> ({ page }) => {
+    <span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'listitem'</span>)).<span class="tk-fn">toHaveCount</span>(<span class="tk-num">10</span>);
+  });
+});</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">08.2</span> Built-in fixtures</h2>
+      <p>Playwright cung cấp sẵn các fixture phổ biến:</p>
+      <table>
+        <thead><tr><th>Fixture</th><th>Là gì?</th></tr></thead>
+        <tbody>
+          <tr><td>page</td><td>Trang web sạch cho mỗi test</td></tr>
+          <tr><td>context</td><td>Browser context (như incognito window)</td></tr>
+          <tr><td>browser</td><td>Browser instance (chia sẻ)</td></tr>
+          <tr><td>request</td><td>API request context</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2><span class="section-num">08.3</span> Custom fixture — ví dụ login</h2>
+      <p>Tránh viết code login lặp lại trong mọi test:</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// fixtures.ts</span>
+<span class="tk-kw">import</span> { test <span class="tk-kw">as</span> base } <span class="tk-kw">from</span> <span class="tk-str">'@playwright/test'</span>;
+
+<span class="tk-kw">type</span> MyFixtures = {
+  loggedInPage: <span class="tk-kw">import</span>(<span class="tk-str">'@playwright/test'</span>).Page;
+};
+
+<span class="tk-kw">export const</span> test = base.<span class="tk-fn">extend</span>&lt;MyFixtures&gt;({
+  loggedInPage: <span class="tk-kw">async</span> ({ page }, use) => {
+    <span class="tk-kw">await</span> page.<span class="tk-fn">goto</span>(<span class="tk-str">'/login'</span>);
+    <span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Email'</span>).<span class="tk-fn">fill</span>(<span class="tk-str">'test@a.com'</span>);
+    <span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Password'</span>).<span class="tk-fn">fill</span>(<span class="tk-str">'pass'</span>);
+    <span class="tk-kw">await</span> page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>, { name: <span class="tk-str">'Login'</span> }).<span class="tk-fn">click</span>();
+    <span class="tk-kw">await</span> page.<span class="tk-fn">waitForURL</span>(<span class="tk-pun">/</span><span class="tk-str">dashboard</span><span class="tk-pun">/</span>);
+    <span class="tk-kw">await</span> <span class="tk-fn">use</span>(page);   <span class="tk-com">// "trao" page đã login cho test</span>
+  },
+});
+
+<span class="tk-kw">export</span> { expect } <span class="tk-kw">from</span> <span class="tk-str">'@playwright/test'</span>;</pre></div>
+
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// dashboard.spec.ts</span>
+<span class="tk-kw">import</span> { test, expect } <span class="tk-kw">from</span> <span class="tk-str">'./fixtures'</span>;
+
+test(<span class="tk-str">'xem profile'</span>, <span class="tk-kw">async</span> ({ loggedInPage }) => {
+  <span class="tk-kw">await</span> loggedInPage.<span class="tk-fn">goto</span>(<span class="tk-str">'/profile'</span>);
+  <span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loggedInPage.<span class="tk-fn">getByText</span>(<span class="tk-str">'Hồ sơ'</span>)).<span class="tk-fn">toBeVisible</span>();
+});</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">08.4</span> Storage state — login 1 lần, dùng cho nhiều test</h2>
+      <p>Cách tối ưu hơn fixture: lưu session vào file, mọi test load sẵn.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// auth.setup.ts</span>
+<span class="tk-kw">import</span> { test <span class="tk-kw">as</span> setup } <span class="tk-kw">from</span> <span class="tk-str">'@playwright/test'</span>;
+
+setup(<span class="tk-str">'authenticate'</span>, <span class="tk-kw">async</span> ({ page }) => {
+  <span class="tk-kw">await</span> page.<span class="tk-fn">goto</span>(<span class="tk-str">'/login'</span>);
+  <span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Email'</span>).<span class="tk-fn">fill</span>(<span class="tk-str">'a@b.com'</span>);
+  <span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Password'</span>).<span class="tk-fn">fill</span>(<span class="tk-str">'x'</span>);
+  <span class="tk-kw">await</span> page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>).<span class="tk-fn">click</span>();
+  <span class="tk-kw">await</span> page.<span class="tk-fn">context</span>().<span class="tk-fn">storageState</span>({ path: <span class="tk-str">'auth.json'</span> });
+});</pre></div>
+
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// playwright.config.ts</span>
+<span class="tk-kw">export default</span> <span class="tk-fn">defineConfig</span>({
+  projects: [
+    { name: <span class="tk-str">'setup'</span>, testMatch: <span class="tk-pun">/</span><span class="tk-str">.*\.setup\.ts</span><span class="tk-pun">/</span> },
+    {
+      name: <span class="tk-str">'chromium'</span>,
+      use: { ...devices[<span class="tk-str">'Desktop Chrome'</span>], storageState: <span class="tk-str">'auth.json'</span> },
+      dependencies: [<span class="tk-str">'setup'</span>],
+    },
+  ],
+});</pre></div>
+    </section>
+  </div>
+
+  <!-- ============ PAGE: POM ============ -->
+  <div class="page" data-page="pom">
+    <h1 class="page-title">Page Object Model (POM)</h1>
+    <p class="page-subtitle">Pattern phổ biến nhất trong test automation: gom locator và action của 1 trang vào 1 class. Dễ bảo trì, dễ đọc.</p>
+
+    <section>
+      <h2><span class="section-num">09.1</span> Vấn đề không có POM</h2>
+      <p>Tưởng tượng 20 test đều có dòng <code>page.getByLabel('Email').fill(...)</code>. Một ngày developer đổi thành "Email Address". Bạn phải sửa 20 chỗ.</p>
+    </section>
+
+    <section>
+      <h2><span class="section-num">09.2</span> POM mẫu</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// pages/LoginPage.ts</span>
+<span class="tk-kw">import</span> { Page, Locator } <span class="tk-kw">from</span> <span class="tk-str">'@playwright/test'</span>;
+
+<span class="tk-kw">export class</span> LoginPage {
+  <span class="tk-kw">readonly</span> page: Page;
+  <span class="tk-kw">readonly</span> emailInput: Locator;
+  <span class="tk-kw">readonly</span> passwordInput: Locator;
+  <span class="tk-kw">readonly</span> submitButton: Locator;
+  <span class="tk-kw">readonly</span> errorMessage: Locator;
+
+  <span class="tk-fn">constructor</span>(page: Page) {
+    <span class="tk-kw">this</span>.page = page;
+    <span class="tk-kw">this</span>.emailInput = page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Email'</span>);
+    <span class="tk-kw">this</span>.passwordInput = page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Password'</span>);
+    <span class="tk-kw">this</span>.submitButton = page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>, { name: <span class="tk-str">'Login'</span> });
+    <span class="tk-kw">this</span>.errorMessage = page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'alert'</span>);
+  }
+
+  <span class="tk-kw">async</span> <span class="tk-fn">goto</span>() {
+    <span class="tk-kw">await</span> <span class="tk-kw">this</span>.page.<span class="tk-fn">goto</span>(<span class="tk-str">'/login'</span>);
+  }
+
+  <span class="tk-kw">async</span> <span class="tk-fn">login</span>(email: string, password: string) {
+    <span class="tk-kw">await</span> <span class="tk-kw">this</span>.emailInput.<span class="tk-fn">fill</span>(email);
+    <span class="tk-kw">await</span> <span class="tk-kw">this</span>.passwordInput.<span class="tk-fn">fill</span>(password);
+    <span class="tk-kw">await</span> <span class="tk-kw">this</span>.submitButton.<span class="tk-fn">click</span>();
+  }
+}</pre></div>
+
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// tests/login.spec.ts</span>
+<span class="tk-kw">import</span> { test, expect } <span class="tk-kw">from</span> <span class="tk-str">'@playwright/test'</span>;
+<span class="tk-kw">import</span> { LoginPage } <span class="tk-kw">from</span> <span class="tk-str">'../pages/LoginPage'</span>;
+
+test(<span class="tk-str">'login thành công'</span>, <span class="tk-kw">async</span> ({ page }) => {
+  <span class="tk-kw">const</span> loginPage = <span class="tk-kw">new</span> <span class="tk-fn">LoginPage</span>(page);
+
+  <span class="tk-kw">await</span> loginPage.<span class="tk-fn">goto</span>();
+  <span class="tk-kw">await</span> loginPage.<span class="tk-fn">login</span>(<span class="tk-str">'a@b.com'</span>, <span class="tk-str">'123456'</span>);
+
+  <span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveURL</span>(<span class="tk-pun">/</span><span class="tk-str">dashboard</span><span class="tk-pun">/</span>);
+});
+
+test(<span class="tk-str">'login sai password hiện lỗi'</span>, <span class="tk-kw">async</span> ({ page }) => {
+  <span class="tk-kw">const</span> loginPage = <span class="tk-kw">new</span> <span class="tk-fn">LoginPage</span>(page);
+
+  <span class="tk-kw">await</span> loginPage.<span class="tk-fn">goto</span>();
+  <span class="tk-kw">await</span> loginPage.<span class="tk-fn">login</span>(<span class="tk-str">'a@b.com'</span>, <span class="tk-str">'sai'</span>);
+
+  <span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loginPage.errorMessage).<span class="tk-fn">toContainText</span>(<span class="tk-str">'Sai mật khẩu'</span>);
+});</pre></div>
+    </section>
+
+    <div class="callout tip">
+      <div class="callout-label">Best practice</div>
+      <p>Locator nên là <strong>property</strong> của class (như trên), không phải method. Việc này cho phép dùng locator trong assertion thay vì chỉ trong action.</p>
+    </div>
+  </div>
+
+  <!-- ============ PAGE: ADVANCED ============ -->
+  <div class="page" data-page="advanced">
+    <h1 class="page-title">Network & API Testing</h1>
+    <p class="page-subtitle">Playwright không chỉ test UI — nó cũng can thiệp được network: mock API, test endpoint trực tiếp, kiểm tra request đã gửi.</p>
+
+    <section>
+      <h2><span class="section-num">10.1</span> Mock API response</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre>test(<span class="tk-str">'hiển thị khi API trả 0 sản phẩm'</span>, <span class="tk-kw">async</span> ({ page }) => {
+  <span class="tk-com">// Chặn request, trả về data giả</span>
+  <span class="tk-kw">await</span> page.<span class="tk-fn">route</span>(<span class="tk-str">'**/api/products'</span>, <span class="tk-kw">async</span> route => {
+    <span class="tk-kw">await</span> route.<span class="tk-fn">fulfill</span>({
+      status: <span class="tk-num">200</span>,
+      contentType: <span class="tk-str">'application/json'</span>,
+      body: JSON.<span class="tk-fn">stringify</span>({ products: [] }),
+    });
+  });
+
+  <span class="tk-kw">await</span> page.<span class="tk-fn">goto</span>(<span class="tk-str">'/shop'</span>);
+  <span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByText</span>(<span class="tk-str">'Không có sản phẩm'</span>)).<span class="tk-fn">toBeVisible</span>();
+});</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">10.2</span> Pure API test (không cần browser)</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre>test(<span class="tk-str">'API: tạo user'</span>, <span class="tk-kw">async</span> ({ request }) => {
+  <span class="tk-kw">const</span> response = <span class="tk-kw">await</span> request.<span class="tk-fn">post</span>(<span class="tk-str">'/api/users'</span>, {
+    data: { name: <span class="tk-str">'Hoa'</span>, email: <span class="tk-str">'hoa@x.com'</span> },
+  });
+
+  <span class="tk-fn">expect</span>(response.<span class="tk-fn">status</span>()).<span class="tk-fn">toBe</span>(<span class="tk-num">201</span>);
+
+  <span class="tk-kw">const</span> body = <span class="tk-kw">await</span> response.<span class="tk-fn">json</span>();
+  <span class="tk-fn">expect</span>(body.name).<span class="tk-fn">toBe</span>(<span class="tk-str">'Hoa'</span>);
+});</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">10.3</span> Kiểm tra request được gửi đi</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre>test(<span class="tk-str">'click submit gửi đúng payload'</span>, <span class="tk-kw">async</span> ({ page }) => {
+  <span class="tk-kw">await</span> page.<span class="tk-fn">goto</span>(<span class="tk-str">'/contact'</span>);
+
+  <span class="tk-com">// Đợi request đồng thời thực hiện action</span>
+  <span class="tk-kw">const</span> [request] = <span class="tk-kw">await</span> Promise.<span class="tk-fn">all</span>([
+    page.<span class="tk-fn">waitForRequest</span>(<span class="tk-str">'**/api/contact'</span>),
+    page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>, { name: <span class="tk-str">'Gửi'</span> }).<span class="tk-fn">click</span>(),
+  ]);
+
+  <span class="tk-fn">expect</span>(request.<span class="tk-fn">postDataJSON</span>()).<span class="tk-fn">toMatchObject</span>({
+    name: <span class="tk-str">'Hoa'</span>,
+  });
+});</pre></div>
+    </section>
+  </div>
+
+  <!-- ============ PAGE: DEBUG ============ -->
+  <div class="page" data-page="debug">
+    <h1 class="page-title">Debug & Trace Viewer</h1>
+    <p class="page-subtitle">Khi test fail, bạn cần biết tại sao. Playwright có UI Mode, Trace Viewer, Inspector — 3 vũ khí mạnh nhất.</p>
+
+    <section>
+      <h2><span class="section-num">11.1</span> UI Mode (cách tốt nhất khi viết)</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="code-copy">Copy</button></div>
+<pre>npx playwright test --ui</pre></div>
+      <p>Mở giao diện trực quan: chạy test, xem timeline, xem DOM snapshot tại mỗi bước, xem network. Có watch mode tự chạy lại khi sửa code.</p>
+    </section>
+
+    <section>
+      <h2><span class="section-num">11.2</span> Debug 1 test cụ thể</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com"># Debug bằng Playwright Inspector (pause được)</span>
+npx playwright test login.spec.ts --debug
+
+<span class="tk-com"># Mở browser thấy được (headed mode)</span>
+npx playwright test --headed
+
+<span class="tk-com"># Chạy chậm 1 giây mỗi action để nhìn thấy</span>
+npx playwright test --headed --slow-mo=<span class="tk-num">1000</span></pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">11.3</span> Trace Viewer — xem lại sau khi fail</h2>
+      <p>Cấu hình trong <code>playwright.config.ts</code>:</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">export default</span> <span class="tk-fn">defineConfig</span>({
+  use: {
+    trace: <span class="tk-str">'on-first-retry'</span>,  <span class="tk-com">// chỉ lưu khi retry</span>
+    <span class="tk-com">// trace: 'retain-on-failure',  // chỉ lưu khi fail</span>
+    <span class="tk-com">// trace: 'on',                  // luôn lưu (nặng)</span>
+  },
+});</pre></div>
+
+      <p>Sau khi test chạy, mở trace:</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="code-copy">Copy</button></div>
+<pre>npx playwright show-trace trace.zip</pre></div>
+      <p>Trace viewer hiển thị: timeline từng action, DOM snapshot, screenshot, network, console log, source code stack trace.</p>
+    </section>
+
+    <section>
+      <h2><span class="section-num">11.4</span> Mẹo debug nhanh trong code</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Pause tại đây, mở browser, kiểm tra DOM</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">pause</span>();
+
+<span class="tk-com">// In ra HTML hiện tại</span>
+console.<span class="tk-fn">log</span>(<span class="tk-kw">await</span> page.<span class="tk-fn">content</span>());
+
+<span class="tk-com">// Chạy chỉ test này (bỏ qua các test khác)</span>
+test.<span class="tk-fn">only</span>(<span class="tk-str">'tên test'</span>, <span class="tk-kw">async</span> ({ page }) => { ... });
+
+<span class="tk-com">// Tạm skip test này</span>
+test.<span class="tk-fn">skip</span>(<span class="tk-str">'tên test'</span>, <span class="tk-kw">async</span> ({ page }) => { ... });</pre></div>
+    </section>
+  </div>
+
+  <!-- ============ PAGE: CI ============ -->
+  <div class="page" data-page="ci">
+    <h1 class="page-title">CI/CD — Chạy tự động</h1>
+    <p class="page-subtitle">Mục tiêu cuối: mỗi pull request đều tự động chạy hết test, fail thì không cho merge.</p>
+
+    <section>
+      <h2><span class="section-num">12.1</span> GitHub Actions (ví dụ đầy đủ)</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">yaml</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com"># .github/workflows/playwright.yml</span>
+name: Playwright Tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  test:
+    timeout-minutes: <span class="tk-num">60</span>
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: <span class="tk-str">'lts/*'</span>
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Run Playwright tests
+        run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: <span class="tk-num">30</span></pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">12.2</span> Tối ưu CI</h2>
+      <ul>
+        <li><strong>Chạy song song</strong> — Playwright tự động dùng nhiều worker</li>
+        <li><strong>Retry on flaky</strong> — set <code>retries: 2</code> trong config (chỉ áp dụng cho CI)</li>
+        <li><strong>Shard</strong> — chia test ra nhiều machine: <code>--shard=1/3</code>, <code>--shard=2/3</code>...</li>
+        <li><strong>Cache browsers</strong> — không tải lại Chromium mỗi lần</li>
+      </ul>
+
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// playwright.config.ts</span>
+<span class="tk-kw">export default</span> <span class="tk-fn">defineConfig</span>({
+  retries: process.env.CI ? <span class="tk-num">2</span> : <span class="tk-num">0</span>,
+  workers: process.env.CI ? <span class="tk-num">1</span> : <span class="tk-kw">undefined</span>,
+  reporter: process.env.CI ? <span class="tk-str">'github'</span> : <span class="tk-str">'list'</span>,
+});</pre></div>
+    </section>
+  </div>
+
+  <!-- ============ PAGE: CHEATSHEET ============ -->
+  <div class="page" data-page="cheatsheet">
+    <h1 class="page-title">Cheatsheet</h1>
+    <p class="page-subtitle">Tất cả lệnh hay dùng nhất, một trang in được. Nếu chỉ in 1 trang để dán bàn → in trang này.</p>
+
+    <section>
+      <h2><span class="section-num">★</span> CLI</h2>
+      <table>
+        <tbody>
+          <tr><td>npx playwright test</td><td>Chạy tất cả</td></tr>
+          <tr><td>npx playwright test --ui</td><td>UI mode (đề xuất)</td></tr>
+          <tr><td>npx playwright test --headed</td><td>Hiện browser</td></tr>
+          <tr><td>npx playwright test --debug</td><td>Inspector</td></tr>
+          <tr><td>npx playwright test foo.spec</td><td>Chỉ 1 file</td></tr>
+          <tr><td>npx playwright test -g "login"</td><td>Lọc theo tên</td></tr>
+          <tr><td>npx playwright codegen URL</td><td>Record</td></tr>
+          <tr><td>npx playwright show-report</td><td>Mở HTML report</td></tr>
+          <tr><td>npx playwright install</td><td>Cài browser</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2><span class="section-num">★</span> Locators (theo ưu tiên)</h2>
+      <table>
+        <tbody>
+          <tr><td>getByRole('button', {'{name}'})</td><td>Theo ARIA role</td></tr>
+          <tr><td>getByLabel('Email')</td><td>Input theo label</td></tr>
+          <tr><td>getByPlaceholder('...')</td><td>Theo placeholder</td></tr>
+          <tr><td>getByText('Welcome')</td><td>Theo text</td></tr>
+          <tr><td>getByTestId('submit')</td><td>data-testid</td></tr>
+          <tr><td>getByAltText('logo')</td><td>Image alt</td></tr>
+          <tr><td>locator('css...')</td><td>CSS (cuối)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2><span class="section-num">★</span> Actions</h2>
+      <table>
+        <tbody>
+          <tr><td>.click()</td><td>Click chuột</td></tr>
+          <tr><td>.fill('text')</td><td>Điền input</td></tr>
+          <tr><td>.clear()</td><td>Xóa input</td></tr>
+          <tr><td>.press('Enter')</td><td>Bấm phím</td></tr>
+          <tr><td>.check() / .uncheck()</td><td>Checkbox</td></tr>
+          <tr><td>.selectOption('VN')</td><td>Dropdown</td></tr>
+          <tr><td>.setInputFiles('f.png')</td><td>Upload</td></tr>
+          <tr><td>.hover()</td><td>Rê chuột</td></tr>
+          <tr><td>.dragTo(target)</td><td>Drag & drop</td></tr>
+          <tr><td>.scrollIntoViewIfNeeded()</td><td>Scroll</td></tr>
+          <tr><td>.screenshot()</td><td>Chụp màn hình</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2><span class="section-num">★</span> Assertions hay dùng</h2>
+      <table>
+        <tbody>
+          <tr><td>toBeVisible() / toBeHidden()</td><td>Hiển thị</td></tr>
+          <tr><td>toBeEnabled() / toBeDisabled()</td><td>Enable</td></tr>
+          <tr><td>toBeChecked()</td><td>Checkbox check</td></tr>
+          <tr><td>toHaveText('x')</td><td>Text khớp</td></tr>
+          <tr><td>toContainText('y')</td><td>Text chứa</td></tr>
+          <tr><td>toHaveValue('a')</td><td>Input value</td></tr>
+          <tr><td>toHaveCount(3)</td><td>Số lượng</td></tr>
+          <tr><td>toHaveAttribute('href', '/')</td><td>Attribute</td></tr>
+          <tr><td>toHaveClass(/active/)</td><td>Class</td></tr>
+          <tr><td>toHaveURL(/path/)</td><td>URL</td></tr>
+          <tr><td>toHaveTitle('App')</td><td>Title</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2><span class="section-num">★</span> Filter & combine locator</h2>
+      <table>
+        <tbody>
+          <tr><td>.filter({'{hasText: "x"}'})</td><td>Lọc text</td></tr>
+          <tr><td>.filter({'{has: loc}'})</td><td>Lọc theo locator con</td></tr>
+          <tr><td>.first() / .last()</td><td>Phần tử đầu/cuối</td></tr>
+          <tr><td>.nth(2)</td><td>Phần tử thứ N</td></tr>
+          <tr><td>.locator('css').first()</td><td>Lồng locator</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <!-- ============ PAGE: RESOURCES ============ -->
+  <div class="page" data-page="resources">
+    <h1 class="page-title">Tài nguyên học thêm</h1>
+    <p class="page-subtitle">Sau khi đi qua app này, đây là nơi học tiếp.</p>
+
+    <section>
+      <h2><span class="section-num">♦</span> Chính thức</h2>
+      <ul>
+        <li><strong>playwright.dev</strong> — Docs gốc, luôn cập nhật mới nhất</li>
+        <li><strong>playwright.dev/docs/api/class-page</strong> — API reference đầy đủ</li>
+        <li><strong>github.com/microsoft/playwright</strong> — Source code, issues, discussions</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span class="section-num">♦</span> Video</h2>
+      <ul>
+        <li><strong>Playwright YouTube channel</strong> — kênh chính thức, có "Tips of the week"</li>
+        <li><strong>Test Automation University</strong> — khóa Playwright miễn phí</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span class="section-num">♦</span> Cộng đồng</h2>
+      <ul>
+        <li><strong>Discord chính thức</strong> — link trong playwright.dev</li>
+        <li><strong>Stack Overflow</strong> — tag <code>playwright</code></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span class="section-num">♦</span> Lộ trình học đề xuất (1 tháng)</h2>
+      <ul>
+        <li><strong>Tuần 1</strong> — Cài đặt, viết test đầu tiên, hiểu locator (chương 01-04)</li>
+        <li><strong>Tuần 2</strong> — Actions, assertions, auto-waiting (chương 05-07)</li>
+        <li><strong>Tuần 3</strong> — Fixtures, POM, viết test cho 1 trang thật trong công ty (chương 08-09)</li>
+        <li><strong>Tuần 4</strong> — Network mocking, CI setup, optimize (chương 10-12)</li>
+      </ul>
+    </section>
+
+    <div class="callout tip">
+      <div class="callout-label">Cuối cùng</div>
+      <p>Đừng học hết tất cả rồi mới làm. Học chương 1-3, viết 1 test thật cho project hiện tại. Học chương 4-6, sửa test đó tốt hơn. Lặp lại. Đó là cách nhanh nhất.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>Playwright Hub · v1.0 · Tổng hợp từ docs chính thức playwright.dev</div>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">Made with ♥</div>
+  </div>
+
+</main>
+</div>
+
+<!-- =================== SCRIPTS =================== -->
+<script>
+/* ========== NAVIGATION ========== */
+const navItems = document.querySelectorAll('.nav-item');
+const pages = document.querySelectorAll('.page');
+
+function goPage(name, skipScroll = false) {
+  navItems.forEach(n => n.classList.toggle('active', n.dataset.page === name));
+  pages.forEach(p => p.classList.toggle('active', p.dataset.page === name));
+  if (!skipScroll) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+navItems.forEach(item => {
+  item.addEventListener('click', () => goPage(item.dataset.page));
+});
+
+/* ========== SEARCH INDEX ========== */
+// Chỉ index các LỆNH trong code block (locator, action, assertion, ...)
+const searchIndex = [];
+let uidCounter = 0;
+function uid(prefix) { return `${prefix}-${++uidCounter}`; }
+
+// Mỗi category có "trang chủ" — chỗ giải thích chính của lệnh đó
+// Khi search, ưu tiên trang chủ trước, fallback các trang khác sau
+const CATEGORY_HOME_PAGE = {
+  locator:   'locators',
+  filter:    'locators',
+  action:    'actions',
+  assertion: 'assertions',
+  page:      'actions',    // page.goto, page.click... thuộc trang Actions/Advanced
+  test:      'fixtures',
+  network:   'advanced',
+  expect:    'assertions',
+};
+
+// Phân loại lệnh để dễ tìm + hiển thị badge
+const COMMAND_CATEGORIES = [
+  { cat: 'locator',   re: /\b(getBy[A-Z]\w+)/g },
+  { cat: 'filter',    re: /\.(filter|first|last|nth|and|or)\b(?=\s*[\(\.])/g },
+  { cat: 'assertion', re: /\b(toBe[A-Z]\w+|toHave[A-Z]\w+|toContain[A-Z]\w+|toMatch[A-Z]?\w*|toEqual)\b/g },
+  { cat: 'action',    re: /\.(click|dblclick|fill|clear|press|pressSequentially|check|uncheck|selectOption|setInputFiles|hover|dragTo|scrollIntoViewIfNeeded|screenshot|focus|blur|tap|type)\b/g },
+  { cat: 'page',      re: /\bpage\.(goto|route|pause|content|keyboard|context|screenshot|locator|reload|goBack|goForward|waitForURL|waitForLoadState|waitForResponse|waitForRequest|waitForFunction|waitForTimeout|evaluate|on)\b/g },
+  { cat: 'test',      re: /\btest\.(describe|beforeAll|beforeEach|afterAll|afterEach|only|skip|step|use|fixme|slow)\b/g },
+  { cat: 'network',   re: /\broute\.(fulfill|continue|abort|fallback)\b/g },
+  { cat: 'expect',    re: /\b(expect)(?=\s*\()/g },
+];
+
+// Override đặc biệt: 1 vài lệnh có "nhà" cụ thể hơn category mặc định
+const COMMAND_HOME_OVERRIDE = {
+  // network commands cụ thể nằm ở page Advanced
+  'page.route':              'advanced',
+  'page.waitForRequest':     'advanced',
+  'page.waitForResponse':    'advanced',
+  // auto-wait
+  'page.waitForURL':         'auto-wait',
+  'page.waitForLoadState':   'auto-wait',
+  'page.waitForFunction':    'auto-wait',
+  'page.waitForTimeout':     'auto-wait',
+  // debug
+  'page.pause':              'debug',
+  'page.screenshot':         'actions',
+  // navigation
+  'page.goto':               'first-test',
+};
+
+function buildIndex() {
+  pages.forEach(page => {
+    const pageName = page.dataset.page;
+    const pageTitle = page.querySelector('.page-title, h1')?.textContent || pageName;
+
+    // Đảm bảo mọi h3 có ID để có thể scroll tới
+    page.querySelectorAll('h3').forEach(h3 => {
+      if (!h3.id) h3.id = uid('h3');
+    });
+    page.querySelectorAll('section h2').forEach(h2 => {
+      if (!h2.id) h2.id = uid('h2');
+    });
+
+    page.querySelectorAll('.code-block').forEach(block => {
+      const pre = block.querySelector('pre');
+      if (!pre) return;
+      if (!block.id) block.id = uid('cb');
+
+      if (!block.dataset.wrapped) {
+        wrapCodeLines(pre);
+        block.dataset.wrapped = 'true';
+      }
+
+      // Tìm heading "tổ tiên" gần nhất ở phía trên code block
+      // Đi ngược lên trong DOM để tìm h3 (ưu tiên) hoặc h2
+      const headingInfo = findNearestHeading(block);
+
+      const lines = pre.querySelectorAll('.code-line');
+      const found = new Map();
+
+      lines.forEach(lineEl => {
+        const lineText = lineEl.textContent;
+        if (/^\s*\/\//.test(lineText) || /^\s*#/.test(lineText)) return;
+
+        COMMAND_CATEGORIES.forEach(({ cat, re }) => {
+          re.lastIndex = 0;
+          let m;
+          while ((m = re.exec(lineText)) !== null) {
+            const cmd = m[1] || m[0];
+            const display = cmd.startsWith('.') ? cmd.slice(1) : cmd;
+            if (!found.has(display)) {
+              found.set(display, { lineEl, category: cat });
+            }
+          }
+        });
+      });
+
+      found.forEach(({ lineEl, category }, cmd) => {
+        if (!lineEl.id) lineEl.id = uid('ln');
+        const snippet = lineEl.textContent.trim().slice(0, 130);
+
+        const homePage = COMMAND_HOME_OVERRIDE[cmd] || CATEGORY_HOME_PAGE[category];
+        const isHome = pageName === homePage;
+
+        // Nếu h3 title (vd "6. getByTitle — qua thuộc tính title") có chứa tên lệnh,
+        // thì đây là chỗ "giải thích chính" của lệnh → ưu tiên scroll tới h3
+        const headingText = headingInfo?.text || '';
+        const isExplainedHere = headingText.toLowerCase().includes(cmd.toLowerCase());
+
+        searchIndex.push({
+          page: pageName,
+          title: cmd,
+          category,
+          targetId: lineEl.id,                      // dòng code (fallback)
+          headingId: headingInfo?.id || null,      // h3/h2 phía trên (preferred)
+          headingLevel: headingInfo?.level || null,
+          blockId: block.id,
+          searchText: cmd,
+          snippet,
+          parent: pageTitle,
+          isHome,
+          isExplainedHere,    // h3 title nhắc đến lệnh này → đây CHẮC CHẮN là chỗ giải thích
+          homePage: homePage || pageName,
+        });
+      });
+    });
+  });
+}
+
+// Tìm heading h3 hoặc h2 gần nhất ở phía trên element
+function findNearestHeading(el) {
+  let node = el;
+  // Đi ngược lên các sibling/ancestor để tìm heading
+  while (node) {
+    // Check các sibling trước đó
+    let prev = node.previousElementSibling;
+    while (prev) {
+      const h3 = prev.matches?.('h3') ? prev : prev.querySelector?.('h3:last-of-type');
+      if (h3 && prev.contains(h3)) {
+        // chỉ lấy h3 nếu nó là descendant trực tiếp hợp lý
+      }
+      if (prev.tagName === 'H3') return { id: prev.id, text: prev.textContent, level: 3, el: prev };
+      if (prev.tagName === 'H2') return { id: prev.id, text: prev.textContent, level: 2, el: prev };
+      // Tìm h3 trong các block trước đó
+      const innerH3 = prev.querySelectorAll?.('h3');
+      if (innerH3 && innerH3.length) {
+        const last = innerH3[innerH3.length - 1];
+        return { id: last.id, text: last.textContent, level: 3, el: last };
+      }
+      prev = prev.previousElementSibling;
+    }
+    // Lên cha
+    node = node.parentElement;
+    if (!node || node.classList?.contains('page')) {
+      // Đến gốc page rồi, tìm h2 cuối cùng trong section chứa el ban đầu
+      break;
+    }
+  }
+  return null;
+}
+
+// Bọc mỗi dòng trong <pre> bằng <span class="code-line"> mà không phá syntax highlight
+function wrapCodeLines(pre) {
+  const html = pre.innerHTML;
+  const parts = html.split('\n');
+  pre.innerHTML = parts.map(p => `<span class="code-line">${p || '&nbsp;'}</span>`).join('\n');
+}
+
+buildIndex();
+
+/* ========== SEARCH ========== */
+const searchInput = document.getElementById('search');
+const searchResults = document.getElementById('searchResults');
+let currentResults = [];
+let selectedIdx = -1;
+
+function fuzzyMatch(text, query) {
+  text = text.toLowerCase();
+  query = query.toLowerCase().trim();
+  if (!query) return 0;
+  // Boost rất mạnh nếu khớp từ đầu (vd: gõ "click" thì .click() lên top)
+  if (text === query) return 1000;
+  if (text.startsWith(query)) return 500;
+  if (text.includes(query)) return 200 - text.indexOf(query);
+  // word match
+  const words = query.split(/\s+/);
+  let score = 0;
+  for (const w of words) {
+    if (text.includes(w)) score += 30;
+  }
+  return score;
+}
+
+function highlight(text, query) {
+  if (!query) return text;
+  const q = query.trim().toLowerCase();
+  const idx = text.toLowerCase().indexOf(q);
+  if (idx === -1) return text;
+  return text.slice(0, idx) + '<mark>' + text.slice(idx, idx + q.length) + '</mark>' + text.slice(idx + q.length);
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function doSearch(query) {
+  if (!query.trim()) {
+    searchResults.classList.remove('show');
+    return;
+  }
+
+  // Score = score khớp tên + bonus theo độ "đúng chỗ":
+  //   1. isExplainedHere: h3 title nhắc đến lệnh → đây CHẮC CHẮN là chỗ giải thích (+100000)
+  //   2. isHome: instance ở trang chủ của lệnh (+10000)
+  // → "getByTitle" sẽ nhảy đến h3 "6. getByTitle — qua thuộc tính title"
+  const scored = searchIndex
+    .map(item => {
+      const matchScore = fuzzyMatch(item.title, query);
+      if (matchScore === 0) return null;
+      const explainBonus = item.isExplainedHere ? 100000 : 0;
+      const homeBonus = item.isHome ? 10000 : 0;
+      return { ...item, score: matchScore + explainBonus + homeBonus };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score);
+
+  // Dedupe theo command name: 1 lệnh chỉ hiện 1 lần (instance tốt nhất đã được sort lên đầu)
+  const seen = new Set();
+  currentResults = [];
+  for (const r of scored) {
+    if (seen.has(r.title)) continue;
+    seen.add(r.title);
+    currentResults.push(r);
+    if (currentResults.length >= 12) break;
+  }
+
+  renderResults(query);
+}
+
+function renderResults(query) {
+  if (currentResults.length === 0) {
+    searchResults.innerHTML = '<div class="search-empty">Không tìm thấy lệnh. Thử: click, fill, getByRole, toHaveText, route, expect...</div>';
+    searchResults.classList.add('show');
+    return;
+  }
+
+  selectedIdx = -1;
+  searchResults.innerHTML = currentResults.map((r, i) => {
+    return `
+      <div class="search-result" data-idx="${i}">
+        <div class="sr-title">
+          <span class="sr-tag sr-tag-${r.category}">${r.category}</span>
+          ${highlight(r.title, query)}
+          <span style="font-size:11px;color:var(--text-mute);font-weight:400;margin-left:auto;">${r.parent}</span>
+        </div>
+        ${r.snippet ? `<div class="sr-snippet">${escapeHtml(r.snippet)}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  searchResults.classList.add('show');
+
+  searchResults.querySelectorAll('.search-result').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.idx);
+      navigateToResult(currentResults[idx]);
+    });
+  });
+}
+
+function navigateToResult(r) {
+  goPage(r.page, true);
+  searchResults.classList.remove('show');
+  searchInput.value = '';
+
+  // Chờ page render xong rồi scroll chính xác đến target
+  // Dùng requestAnimationFrame để chắc chắn DOM đã update
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      // Ưu tiên scroll đến HEADING (h3/h2 phía trên) — đầu mục giải thích
+      // Fallback dòng code nếu không có heading
+      const scrollTargetId = r.headingId || r.targetId;
+      const scrollTarget = document.getElementById(scrollTargetId);
+      if (!scrollTarget) return;
+
+      const topbarHeight = 100;
+      const rect = scrollTarget.getBoundingClientRect();
+      const absoluteTop = rect.top + window.pageYOffset - topbarHeight;
+      window.scrollTo({ top: absoluteTop, behavior: 'smooth' });
+
+      // Flash heading (chỗ scroll đến) để user thấy ngay tiêu đề mục
+      if (r.headingId) {
+        scrollTarget.classList.add('search-target-flash');
+        setTimeout(() => scrollTarget.classList.remove('search-target-flash'), 2300);
+      }
+
+      // Flash code block + dòng lệnh để user thấy chính xác lệnh ở đâu trong mục
+      const block = document.getElementById(r.blockId);
+      if (block) {
+        block.classList.add('search-hit');
+        setTimeout(() => block.classList.remove('search-hit'), 2500);
+      }
+      const lineEl = document.getElementById(r.targetId);
+      if (lineEl) {
+        lineEl.classList.add('code-line-flash');
+        setTimeout(() => lineEl.classList.remove('code-line-flash'), 3000);
+      }
+    }, 80);
+  });
+}
+
+searchInput.addEventListener('input', e => doSearch(e.target.value));
+
+searchInput.addEventListener('keydown', e => {
+  const items = searchResults.querySelectorAll('.search-result');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    selectedIdx = Math.min(selectedIdx + 1, items.length - 1);
+    items.forEach((it, i) => it.classList.toggle('hl', i === selectedIdx));
+    items[selectedIdx]?.scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectedIdx = Math.max(selectedIdx - 1, 0);
+    items.forEach((it, i) => it.classList.toggle('hl', i === selectedIdx));
+    items[selectedIdx]?.scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter' && selectedIdx >= 0) {
+    e.preventDefault();
+    navigateToResult(currentResults[selectedIdx]);
+  } else if (e.key === 'Escape') {
+    searchResults.classList.remove('show');
+    searchInput.blur();
+  }
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap')) {
+    searchResults.classList.remove('show');
+  }
+});
+
+// Cmd+K / Ctrl+K
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+  }
+});
+
+/* ========== COPY CODE BUTTONS ========== */
+document.querySelectorAll('.code-copy').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    const text = pre.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 1500);
+    });
+  });
+});
+
+/* ========== CARD CLICKS ========== */
+document.querySelectorAll('.card[onclick]').forEach(card => {
+  // already has inline onclick
+});
+
+window.goPage = goPage;
+window.searchIndex = searchIndex;
+</script>
+</body>
+</html>
