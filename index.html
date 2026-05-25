@@ -866,68 +866,329 @@ page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>).
   <!-- ============ PAGE: ASSERTIONS ============ -->
   <div class="page" data-page="assertions">
     <h1 class="page-title">Assertions — Kiểm tra kết quả</h1>
-    <p class="page-subtitle">Assertion = "tôi mong đợi điều này phải đúng". Nếu sai, test fail. Playwright có 2 loại: web assertion (auto-retry) và assertion thường.</p>
+    <p class="page-subtitle">Assertion = "tôi mong đợi điều này phải đúng". Nếu sai, test fail. Playwright có 2 loại: web assertion (auto-retry) và assertion thường (so sánh giá trị tĩnh).</p>
 
     <section>
-      <h2><span class="section-num">06.1</span> Web assertions — có auto-retry</h2>
-      <p>Đây là <strong>điểm cực mạnh</strong> của Playwright. <code>expect(locator).toBeVisible()</code> sẽ tự đợi tối đa 5 giây để element hiện ra, không cần sleep().</p>
+      <h2><span class="section-num">06.1</span> Web assertions là gì?</h2>
+      <p>Web assertion là <strong>điểm cực mạnh</strong> của Playwright. Khi gọi <code>expect(locator).toBeVisible()</code>, Playwright sẽ:</p>
+      <ul>
+        <li>Kiểm tra ngay lập tức</li>
+        <li>Nếu chưa đạt, đợi và kiểm tra lại liên tục</li>
+        <li>Đợi tối đa 5 giây (mặc định), nếu vẫn không đạt → test fail</li>
+      </ul>
+      <p>Nghĩa là bạn <strong>không cần viết sleep()</strong>. Sau khi click submit, chỉ cần <code>await expect(page.getByText('Thành công')).toBeVisible()</code> — nó tự đợi.</p>
 
-      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
-<pre><span class="tk-com">// Visibility / state</span>
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeVisible</span>();
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeHidden</span>();
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeEnabled</span>();
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeDisabled</span>();
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeChecked</span>();
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeFocused</span>();
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeEmpty</span>();
-
-<span class="tk-com">// Text / value</span>
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveText</span>(<span class="tk-str">'Xin chào'</span>);
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toContainText</span>(<span class="tk-str">'chào'</span>);
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveValue</span>(<span class="tk-str">'user@test.com'</span>);
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveCount</span>(<span class="tk-num">3</span>); <span class="tk-com">// số lượng element</span>
-
-<span class="tk-com">// Attribute / class / CSS</span>
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveAttribute</span>(<span class="tk-str">'href'</span>, <span class="tk-str">'/about'</span>);
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveClass</span>(<span class="tk-pun">/</span><span class="tk-str">active</span><span class="tk-pun">/</span>);
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveCSS</span>(<span class="tk-str">'color'</span>, <span class="tk-str">'rgb(255, 0, 0)'</span>);
-
-<span class="tk-com">// Page-level</span>
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveTitle</span>(<span class="tk-str">'My App'</span>);
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveURL</span>(<span class="tk-pun">/</span><span class="tk-str">dashboard</span><span class="tk-pun">/</span>);
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveScreenshot</span>(<span class="tk-str">'home.png'</span>); <span class="tk-com">// visual regression</span></pre></div>
+      <div class="callout tip">
+        <div class="callout-label">Nhận biết web assertion</div>
+        <p>Có chữ <code>await</code> phía trước và đối số là <code>locator</code> hoặc <code>page</code>. Khác với assertion thường (so sánh giá trị: <code>expect(5).toBe(5)</code>).</p>
+      </div>
     </section>
 
     <section>
-      <h2><span class="section-num">06.2</span> Phủ định với <code>.not</code></h2>
+      <h2><span class="section-num">06.2</span> Visibility & state — element hiển thị thế nào</h2>
+
+      <h3><code>toBeVisible</code> / <code>toBeHidden</code> — có hiển thị không</h3>
+      <p>Kiểm tra element <strong>có hiển thị trên trang</strong> không. <code>toBeHidden</code> ngược lại — element không có trong DOM hoặc bị ẩn (display:none, visibility:hidden, opacity:0).</p>
       <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
-<pre><span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">not</span>.<span class="tk-fn">toBeVisible</span>();
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">not</span>.<span class="tk-fn">toHaveText</span>(<span class="tk-str">'Error'</span>);
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">not</span>.<span class="tk-fn">toBeChecked</span>();</pre></div>
+<pre><span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByText</span>(<span class="tk-str">'Xin chào'</span>)).<span class="tk-fn">toBeVisible</span>();
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByText</span>(<span class="tk-str">'Loading...'</span>)).<span class="tk-fn">toBeHidden</span>();</pre></div>
+
+      <h3><code>toBeAttached</code> — element có trong DOM không</h3>
+      <p>Element <strong>tồn tại trong DOM</strong> (kể cả ẩn). Hữu ích khi test element đã render nhưng chưa visible (vd: modal trước khi mở).</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">locator</span>(<span class="tk-str">'#modal'</span>)).<span class="tk-fn">toBeAttached</span>();
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">locator</span>(<span class="tk-str">'#removed'</span>)).<span class="tk-fn">not</span>.<span class="tk-fn">toBeAttached</span>();</pre></div>
+
+      <h3><code>toBeEnabled</code> / <code>toBeDisabled</code> — nút có bấm được không</h3>
+      <p>Element có thuộc tính <code>disabled</code> hay không. Áp dụng cho button, input, select.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Nút Submit phải bấm được</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>, { name: <span class="tk-str">'Submit'</span> })).<span class="tk-fn">toBeEnabled</span>();
+
+<span class="tk-com">// Khi chưa điền form, nút Submit phải disabled</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>, { name: <span class="tk-str">'Submit'</span> })).<span class="tk-fn">toBeDisabled</span>();</pre></div>
+
+      <h3><code>toBeEditable</code> — ô input có cho gõ không</h3>
+      <p>Element không bị <code>disabled</code> hoặc <code>readonly</code>.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Email'</span>)).<span class="tk-fn">toBeEditable</span>();</pre></div>
+
+      <h3><code>toBeChecked</code> — checkbox/radio đã tick chưa</h3>
+      <p>Áp dụng cho checkbox, radio button, hoặc element có <code>role="checkbox"</code>.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Đồng ý điều khoản'</span>)).<span class="tk-fn">toBeChecked</span>();
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Newsletter'</span>)).<span class="tk-fn">not</span>.<span class="tk-fn">toBeChecked</span>();
+
+<span class="tk-com">// Truyền checked: false thay vì .not.toBeChecked()</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Newsletter'</span>)).<span class="tk-fn">toBeChecked</span>({ checked: <span class="tk-kw">false</span> });</pre></div>
+
+      <h3><code>toBeFocused</code> — element đang được focus</h3>
+      <p>Hữu ích khi test bàn phím (Tab giữa các input) hoặc autofocus.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Email'</span>).<span class="tk-fn">press</span>(<span class="tk-str">'Tab'</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Password'</span>)).<span class="tk-fn">toBeFocused</span>();</pre></div>
+
+      <h3><code>toBeEmpty</code> — element rỗng</h3>
+      <p>Element không có text con và không có element con nào. Hữu ích test list rỗng, container chưa load.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">locator</span>(<span class="tk-str">'#error-message'</span>)).<span class="tk-fn">toBeEmpty</span>();</pre></div>
+
+      <h3><code>toBeInViewport</code> — element trong vùng nhìn thấy</h3>
+      <p>Element đang nằm trong viewport (vùng người dùng đang thấy), không phải ở phần đã cuộn ra ngoài.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByText</span>(<span class="tk-str">'Footer'</span>)).<span class="tk-fn">toBeInViewport</span>();
+
+<span class="tk-com">// Tối thiểu 50% element phải nhìn thấy</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeInViewport</span>({ ratio: <span class="tk-num">0.5</span> });</pre></div>
     </section>
 
     <section>
-      <h2><span class="section-num">06.3</span> Tùy chỉnh timeout</h2>
+      <h2><span class="section-num">06.3</span> Text & value — nội dung element</h2>
+
+      <h3><code>toHaveText</code> — text khớp chính xác</h3>
+      <p>Text content của element phải <strong>khớp toàn bộ</strong> chuỗi (trim khoảng trắng đầu/cuối). Hỗ trợ string, regex, hoặc array (khi locator trỏ tới nhiều element).</p>
       <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
-<pre><span class="tk-com">// Đợi tối đa 10 giây (mặc định là 5s)</span>
-<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toBeVisible</span>({ timeout: <span class="tk-num">10000</span> });</pre></div>
+<pre><span class="tk-com">// HTML: &lt;h1&gt;Welcome back, Hoa!&lt;/h1&gt;</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'heading'</span>)).<span class="tk-fn">toHaveText</span>(<span class="tk-str">'Welcome back, Hoa!'</span>);
+
+<span class="tk-com">// Với regex</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'heading'</span>)).<span class="tk-fn">toHaveText</span>(<span class="tk-pun">/</span><span class="tk-str">Welcome</span><span class="tk-pun">/</span>);
+
+<span class="tk-com">// Với list — kiểm tra từng item</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'listitem'</span>)).<span class="tk-fn">toHaveText</span>([<span class="tk-str">'Apple'</span>, <span class="tk-str">'Banana'</span>, <span class="tk-str">'Cherry'</span>]);</pre></div>
+
+      <h3><code>toContainText</code> — text chứa chuỗi con</h3>
+      <p>Element <strong>chứa</strong> chuỗi/regex (không cần khớp toàn bộ). Dùng khi text dài hoặc có phần thay đổi.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// HTML: &lt;p&gt;Đã đặt hàng thành công. Mã đơn: #A1B2C3&lt;/p&gt;</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'alert'</span>)).<span class="tk-fn">toContainText</span>(<span class="tk-str">'thành công'</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'alert'</span>)).<span class="tk-fn">toContainText</span>(<span class="tk-pun">/</span><span class="tk-str">Mã đơn: #\w+</span><span class="tk-pun">/</span>);</pre></div>
+
+      <h3><code>toHaveValue</code> — giá trị input</h3>
+      <p>Áp dụng cho <code>&lt;input&gt;</code>, <code>&lt;textarea&gt;</code>, <code>&lt;select&gt;</code>.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Email'</span>)).<span class="tk-fn">toHaveValue</span>(<span class="tk-str">'user@test.com'</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Tuổi'</span>)).<span class="tk-fn">toHaveValue</span>(<span class="tk-pun">/</span><span class="tk-str">\d+</span><span class="tk-pun">/</span>);</pre></div>
+
+      <h3><code>toHaveValues</code> — multi-select đã chọn những gì</h3>
+      <p>Dành riêng cho <code>&lt;select multiple&gt;</code> — kiểm tra danh sách option đang được chọn.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Tags'</span>).<span class="tk-fn">selectOption</span>([<span class="tk-str">'red'</span>, <span class="tk-str">'green'</span>]);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Tags'</span>)).<span class="tk-fn">toHaveValues</span>([<span class="tk-str">'red'</span>, <span class="tk-str">'green'</span>]);</pre></div>
+
+      <h3><code>toHaveCount</code> — số lượng element</h3>
+      <p>Locator trỏ tới <strong>chính xác N element</strong>. Hữu ích cho list, grid, search results.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Search trả về đúng 3 kết quả</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByPlaceholder</span>(<span class="tk-str">'Tìm'</span>).<span class="tk-fn">fill</span>(<span class="tk-str">'iPhone'</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'listitem'</span>)).<span class="tk-fn">toHaveCount</span>(<span class="tk-num">3</span>);
+
+<span class="tk-com">// Không có kết quả nào</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'listitem'</span>)).<span class="tk-fn">toHaveCount</span>(<span class="tk-num">0</span>);</pre></div>
     </section>
 
     <section>
-      <h2><span class="section-num">06.4</span> Assertions thường (không retry)</h2>
+      <h2><span class="section-num">06.4</span> Attribute, class, CSS</h2>
+
+      <h3><code>toHaveAttribute</code> — có attribute với giá trị</h3>
+      <p>Element có HTML attribute. Hữu ích cho href, src, alt, data-*, aria-*, name, type...</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Link trỏ đúng URL</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'link'</span>, { name: <span class="tk-str">'Về chúng tôi'</span> }))
+  .<span class="tk-fn">toHaveAttribute</span>(<span class="tk-str">'href'</span>, <span class="tk-str">'/about'</span>);
+
+<span class="tk-com">// Input có type đúng</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Password'</span>))
+  .<span class="tk-fn">toHaveAttribute</span>(<span class="tk-str">'type'</span>, <span class="tk-str">'password'</span>);
+
+<span class="tk-com">// Chỉ cần attribute tồn tại (không quan tâm giá trị)</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>)).<span class="tk-fn">toHaveAttribute</span>(<span class="tk-str">'aria-pressed'</span>);
+
+<span class="tk-com">// Với regex</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">locator</span>(<span class="tk-str">'img'</span>)).<span class="tk-fn">toHaveAttribute</span>(<span class="tk-str">'src'</span>, <span class="tk-pun">/</span><span class="tk-str">\.png$</span><span class="tk-pun">/</span>);</pre></div>
+
+      <h3><code>toHaveClass</code> — class chính xác</h3>
+      <p>Khớp <strong>toàn bộ</strong> thuộc tính <code>class</code>. Thường dùng với regex để check 1 class trong nhiều class.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// HTML: &lt;div class="btn btn-primary active"&gt;</span>
+<span class="tk-com">// Khớp toàn bộ (ít dùng)</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveClass</span>(<span class="tk-str">'btn btn-primary active'</span>);
+
+<span class="tk-com">// Dùng regex để check 1 class (phổ biến)</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveClass</span>(<span class="tk-pun">/</span><span class="tk-str">active</span><span class="tk-pun">/</span>);</pre></div>
+
+      <h3><code>toContainClass</code> — chứa class (mới, dễ dùng hơn)</h3>
+      <p>Element <strong>chứa</strong> class chỉ định, dù còn class khác. Tốt hơn regex khi chỉ muốn check 1 class.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// HTML: &lt;div class="btn btn-primary active"&gt;</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toContainClass</span>(<span class="tk-str">'active'</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toContainClass</span>(<span class="tk-str">'btn-primary active'</span>);  <span class="tk-com">// nhiều class</span></pre></div>
+
+      <h3><code>toHaveCSS</code> — giá trị CSS sau khi render</h3>
+      <p>Kiểm tra CSS computed value (giá trị thật sau khi browser tính). Lưu ý màu sẽ trả về dạng <code>rgb()</code>, không phải hex.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Nút lỗi có màu đỏ</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'alert'</span>)).<span class="tk-fn">toHaveCSS</span>(<span class="tk-str">'color'</span>, <span class="tk-str">'rgb(255, 0, 0)'</span>);
+
+<span class="tk-com">// Element ẩn</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveCSS</span>(<span class="tk-str">'display'</span>, <span class="tk-str">'none'</span>);
+
+<span class="tk-com">// Font size</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(loc).<span class="tk-fn">toHaveCSS</span>(<span class="tk-str">'font-size'</span>, <span class="tk-str">'16px'</span>);</pre></div>
+
+      <h3><code>toHaveId</code> — element có id cụ thể</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'main'</span>)).<span class="tk-fn">toHaveId</span>(<span class="tk-str">'content'</span>);</pre></div>
+
+      <h3><code>toHaveJSProperty</code> — JS property của element</h3>
+      <p>Đôi khi cần kiểm tra property của DOM node (không phải HTML attribute) — ví dụ <code>checked</code>, <code>value</code> hiện tại sau khi user nhập, hoặc property tùy chỉnh.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Đồng ý'</span>)).<span class="tk-fn">toHaveJSProperty</span>(<span class="tk-str">'checked'</span>, <span class="tk-kw">true</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">locator</span>(<span class="tk-str">'video'</span>)).<span class="tk-fn">toHaveJSProperty</span>(<span class="tk-str">'paused'</span>, <span class="tk-kw">false</span>);</pre></div>
+
+      <h3><code>toHaveRole</code> — ARIA role của element</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">locator</span>(<span class="tk-str">'#login-btn'</span>)).<span class="tk-fn">toHaveRole</span>(<span class="tk-str">'button'</span>);</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">06.5</span> Page-level — kiểm tra cả trang</h2>
+
+      <h3><code>toHaveTitle</code> — title trên tab browser</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveTitle</span>(<span class="tk-str">'Trang chủ - Shop ABC'</span>);
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveTitle</span>(<span class="tk-pun">/</span><span class="tk-str">Shop ABC</span><span class="tk-pun">/</span>);</pre></div>
+
+      <h3><code>toHaveURL</code> — URL hiện tại của trang</h3>
+      <p>Kiểm tra URL sau khi điều hướng (login → dashboard, click link, redirect...).</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>, { name: <span class="tk-str">'Login'</span> }).<span class="tk-fn">click</span>();
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveURL</span>(<span class="tk-pun">/</span><span class="tk-str">\/dashboard</span><span class="tk-pun">/</span>);
+
+<span class="tk-com">// URL chính xác</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveURL</span>(<span class="tk-str">'https://shop.com/checkout?step=2'</span>);</pre></div>
+
+      <h3><code>toHaveScreenshot</code> — visual regression</h3>
+      <p>So sánh ảnh chụp màn hình với ảnh đã lưu trước đó. Lần đầu chạy sẽ tạo baseline, lần sau so sánh. Phát hiện lỗi UI mà không cần viết assertion cụ thể.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Chụp & so sánh cả trang</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveScreenshot</span>(<span class="tk-str">'home.png'</span>);
+
+<span class="tk-com">// Chỉ 1 element</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'navigation'</span>)).<span class="tk-fn">toHaveScreenshot</span>(<span class="tk-str">'nav.png'</span>);
+
+<span class="tk-com">// Cho phép sai lệch nhỏ</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">toHaveScreenshot</span>(<span class="tk-str">'home.png'</span>, { maxDiffPixels: <span class="tk-num">100</span> });</pre></div>
+
+      <div class="callout warn">
+        <div class="callout-label">Lần đầu</div>
+        <p>Lần đầu chạy <code>toHaveScreenshot</code> sẽ tạo file ảnh chuẩn và <strong>fail</strong>. Chạy lại sẽ pass. Để update khi UI thay đổi cố ý: <code>npx playwright test --update-snapshots</code>.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">06.6</span> Phủ định với <code>.not</code></h2>
+      <p>Thêm <code>.not</code> trước assertion để đảo ngược ý nghĩa.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Không hiển thị (sau khi đóng modal)</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'dialog'</span>)).<span class="tk-fn">not</span>.<span class="tk-fn">toBeVisible</span>();
+
+<span class="tk-com">// Không chứa text lỗi</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'alert'</span>)).<span class="tk-fn">not</span>.<span class="tk-fn">toContainText</span>(<span class="tk-str">'Lỗi'</span>);
+
+<span class="tk-com">// Chưa được tick</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Newsletter'</span>)).<span class="tk-fn">not</span>.<span class="tk-fn">toBeChecked</span>();
+
+<span class="tk-com">// Không trỏ đến URL cũ</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page).<span class="tk-fn">not</span>.<span class="tk-fn">toHaveURL</span>(<span class="tk-pun">/</span><span class="tk-str">\/login</span><span class="tk-pun">/</span>);</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">06.7</span> Tùy chỉnh timeout</h2>
+      <p>Mặc định web assertion đợi tối đa 5 giây. Tăng/giảm tùy trường hợp:</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Element hiện chậm (vd: load PDF) — đợi 30s</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByText</span>(<span class="tk-str">'PDF loaded'</span>)).<span class="tk-fn">toBeVisible</span>({ timeout: <span class="tk-num">30000</span> });
+
+<span class="tk-com">// Muốn fail nhanh nếu element không xuất hiện ngay — 1s</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByText</span>(<span class="tk-str">'Lỗi'</span>)).<span class="tk-fn">not</span>.<span class="tk-fn">toBeVisible</span>({ timeout: <span class="tk-num">1000</span> });</pre></div>
+
+      <p>Đổi timeout mặc định cho toàn project trong <code>playwright.config.ts</code>:</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">export default</span> <span class="tk-fn">defineConfig</span>({
+  expect: {
+    timeout: <span class="tk-num">10000</span>,  <span class="tk-com">// 10s cho tất cả assertion</span>
+  },
+});</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">06.8</span> Assertions thường (không có auto-retry)</h2>
+      <p>Khi bạn có sẵn 1 giá trị cụ thể (số, chuỗi, object) — không phải locator — dùng assertion thường. Chúng so sánh <strong>1 lần duy nhất</strong>, không đợi.</p>
+
+      <h3><code>toBe</code> / <code>toEqual</code> — so sánh giá trị</h3>
+      <p><code>toBe</code> so sánh chính xác (===), <code>toEqual</code> so sánh sâu cho object/array.</p>
       <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
 <pre><span class="tk-kw">const</span> count = <span class="tk-kw">await</span> page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'listitem'</span>).<span class="tk-fn">count</span>();
 <span class="tk-fn">expect</span>(count).<span class="tk-fn">toBe</span>(<span class="tk-num">5</span>);
-<span class="tk-fn">expect</span>(count).<span class="tk-fn">toBeGreaterThan</span>(<span class="tk-num">0</span>);
 
-<span class="tk-kw">const</span> text = <span class="tk-kw">await</span> page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'heading'</span>).<span class="tk-fn">textContent</span>();
-<span class="tk-fn">expect</span>(text).<span class="tk-fn">toMatch</span>(<span class="tk-pun">/</span><span class="tk-str">Welcome</span><span class="tk-pun">/</span>);</pre></div>
+<span class="tk-kw">const</span> user = <span class="tk-kw">await</span> response.<span class="tk-fn">json</span>();
+<span class="tk-fn">expect</span>(user).<span class="tk-fn">toEqual</span>({ name: <span class="tk-str">'Hoa'</span>, age: <span class="tk-num">25</span> });</pre></div>
+
+      <h3>So sánh số: <code>toBeGreaterThan</code>, <code>toBeLessThan</code>, ...</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-fn">expect</span>(count).<span class="tk-fn">toBeGreaterThan</span>(<span class="tk-num">0</span>);
+<span class="tk-fn">expect</span>(count).<span class="tk-fn">toBeGreaterThanOrEqual</span>(<span class="tk-num">5</span>);
+<span class="tk-fn">expect</span>(count).<span class="tk-fn">toBeLessThan</span>(<span class="tk-num">100</span>);</pre></div>
+
+      <h3><code>toMatch</code> / <code>toMatchObject</code> — regex & object partial</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">const</span> text = <span class="tk-kw">await</span> page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'heading'</span>).<span class="tk-fn">textContent</span>();
+<span class="tk-fn">expect</span>(text).<span class="tk-fn">toMatch</span>(<span class="tk-pun">/</span><span class="tk-str">Welcome</span><span class="tk-pun">/</span>);
+
+<span class="tk-com">// Object có chứa các field này (không cần đủ tất cả field)</span>
+<span class="tk-fn">expect</span>(user).<span class="tk-fn">toMatchObject</span>({ name: <span class="tk-str">'Hoa'</span> });</pre></div>
+
+      <h3><code>toBeTruthy</code> / <code>toBeFalsy</code> / <code>toBeNull</code></h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-fn">expect</span>(user.id).<span class="tk-fn">toBeTruthy</span>();        <span class="tk-com">// không phải null/undefined/0/'</span>'
+<span class="tk-fn">expect</span>(error).<span class="tk-fn">toBeFalsy</span>();
+<span class="tk-fn">expect</span>(result).<span class="tk-fn">toBeNull</span>();
+<span class="tk-fn">expect</span>(result).<span class="tk-fn">toBeDefined</span>();</pre></div>
+
+      <h3><code>toContain</code> — array hoặc string chứa giá trị</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-fn">expect</span>([<span class="tk-str">'red'</span>, <span class="tk-str">'green'</span>, <span class="tk-str">'blue'</span>]).<span class="tk-fn">toContain</span>(<span class="tk-str">'green'</span>);
+<span class="tk-fn">expect</span>(<span class="tk-str">'Hello world'</span>).<span class="tk-fn">toContain</span>(<span class="tk-str">'world'</span>);</pre></div>
 
       <div class="callout warn">
         <div class="callout-label">Quan trọng</div>
-        <p>Web assertion (<code>await expect(loc).toBeVisible()</code>) ưu tiên hơn — vì có auto-retry. Chỉ dùng assertion thường khi bạn đã có giá trị cụ thể (số, chuỗi).</p>
+        <p>Web assertion (<code>await expect(loc).toBeVisible()</code>) ưu tiên hơn vì có auto-retry — tránh test flaky. Chỉ dùng assertion thường khi bạn đã có giá trị cụ thể (response API, text đã lấy ra, count đã đếm).</p>
       </div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">06.9</span> Soft assertions — không dừng test khi fail</h2>
+      <p>Mặc định, assertion fail sẽ <strong>dừng test ngay</strong>. Đôi khi bạn muốn chạy tiếp để xem hết các lỗi → dùng <code>expect.soft</code>.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre>test(<span class="tk-str">'kiểm tra hết các field'</span>, <span class="tk-kw">async</span> ({ page }) => {
+  <span class="tk-kw">await</span> page.<span class="tk-fn">goto</span>(<span class="tk-str">'/profile'</span>);
+
+  <span class="tk-com">// Cả 3 assertion đều chạy dù có cái fail</span>
+  <span class="tk-kw">await</span> <span class="tk-fn">expect</span>.<span class="tk-fn">soft</span>(page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Tên'</span>)).<span class="tk-fn">toHaveValue</span>(<span class="tk-str">'Hoa'</span>);
+  <span class="tk-kw">await</span> <span class="tk-fn">expect</span>.<span class="tk-fn">soft</span>(page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Email'</span>)).<span class="tk-fn">toHaveValue</span>(<span class="tk-str">'hoa@x.com'</span>);
+  <span class="tk-kw">await</span> <span class="tk-fn">expect</span>.<span class="tk-fn">soft</span>(page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Tuổi'</span>)).<span class="tk-fn">toHaveValue</span>(<span class="tk-str">'25'</span>);
+
+  <span class="tk-com">// Test sẽ fail nếu có ít nhất 1 soft assertion fail</span>
+});</pre></div>
+    </section>
+
+    <section>
+      <h2><span class="section-num">06.10</span> Custom error message</h2>
+      <p>Thêm message để dễ debug khi test fail trong CI:</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>), <span class="tk-str">'Nút Submit phải enable sau khi điền form'</span>)
+  .<span class="tk-fn">toBeEnabled</span>();</pre></div>
     </section>
   </div>
 
@@ -951,22 +1212,76 @@ page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>).
 
     <section>
       <h2><span class="section-num">07.2</span> Khi nào cần đợi thủ công?</h2>
-      <p>Hầu hết trường hợp <strong>không cần</strong>. Tuy nhiên có vài trường hợp đặc biệt:</p>
+      <p>Hầu hết trường hợp <strong>không cần</strong> vì auto-wait đã lo. Nhưng có những lúc bạn cần chủ động đợi event xảy ra:</p>
 
+      <h3><code>page.waitForURL</code> — đợi điều hướng</h3>
+      <p>Đợi URL khớp pattern. Thường dùng sau khi click → redirect.</p>
       <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
-<pre><span class="tk-com">// Đợi URL khớp pattern</span>
-<span class="tk-kw">await</span> page.<span class="tk-fn">waitForURL</span>(<span class="tk-pun">/</span><span class="tk-str">dashboard</span><span class="tk-pun">/</span>);
+<pre><span class="tk-kw">await</span> page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>, { name: <span class="tk-str">'Login'</span> }).<span class="tk-fn">click</span>();
+<span class="tk-kw">await</span> page.<span class="tk-fn">waitForURL</span>(<span class="tk-pun">/</span><span class="tk-str">\/dashboard</span><span class="tk-pun">/</span>);
 
-<span class="tk-com">// Đợi network response</span>
-<span class="tk-kw">await</span> page.<span class="tk-fn">waitForResponse</span>(resp =>
+<span class="tk-com">// Hoặc URL chính xác</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">waitForURL</span>(<span class="tk-str">'https://shop.com/cart'</span>);</pre></div>
+      <div class="callout tip">
+        <div class="callout-label">Lưu ý</div>
+        <p>Thường thì <code>await expect(page).toHaveURL(...)</code> đủ rồi (cũng auto-wait). Chỉ dùng <code>waitForURL</code> khi cần chắc chắn navigation xong trước khi làm tiếp.</p>
+      </div>
+
+      <h3><code>page.waitForResponse</code> — đợi API response</h3>
+      <p>Đợi 1 network response cụ thể quay về. Hữu ích khi UI phụ thuộc vào data từ API.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Click rồi đợi response /api/users về thành công</span>
+<span class="tk-kw">const</span> responsePromise = page.<span class="tk-fn">waitForResponse</span>(resp =>
   resp.<span class="tk-fn">url</span>().<span class="tk-fn">includes</span>(<span class="tk-str">'/api/users'</span>) && resp.<span class="tk-fn">status</span>() === <span class="tk-num">200</span>
 );
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>, { name: <span class="tk-str">'Load users'</span> }).<span class="tk-fn">click</span>();
+<span class="tk-kw">const</span> response = <span class="tk-kw">await</span> responsePromise;
 
-<span class="tk-com">// Đợi load state (load, domcontentloaded, networkidle)</span>
-<span class="tk-kw">await</span> page.<span class="tk-fn">waitForLoadState</span>(<span class="tk-str">'networkidle'</span>);
+<span class="tk-kw">const</span> users = <span class="tk-kw">await</span> response.<span class="tk-fn">json</span>();</pre></div>
 
-<span class="tk-com">// Đợi event tùy chỉnh</span>
-<span class="tk-kw">await</span> page.<span class="tk-fn">waitForFunction</span>(() => window.<span class="tk-fn">dataLoaded</span> === <span class="tk-kw">true</span>);</pre></div>
+      <h3><code>page.waitForRequest</code> — đợi request được gửi</h3>
+      <p>Ngược lại với <code>waitForResponse</code> — đợi 1 request <strong>đi ra</strong>. Tốt để verify "click nút này có gọi API kia không".</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">const</span> requestPromise = page.<span class="tk-fn">waitForRequest</span>(<span class="tk-str">'**/api/track'</span>);
+<span class="tk-kw">await</span> page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>, { name: <span class="tk-str">'Subscribe'</span> }).<span class="tk-fn">click</span>();
+<span class="tk-kw">const</span> request = <span class="tk-kw">await</span> requestPromise;
+
+<span class="tk-fn">expect</span>(request.<span class="tk-fn">postDataJSON</span>()).<span class="tk-fn">toMatchObject</span>({ event: <span class="tk-str">'subscribe'</span> });</pre></div>
+
+      <h3><code>page.waitForLoadState</code> — đợi trang load xong</h3>
+      <p>Đợi trạng thái cụ thể của trang. 3 mức:</p>
+      <ul>
+        <li><code>'load'</code> — sự kiện <code>load</code> đã fire (mặc định của <code>goto</code>)</li>
+        <li><code>'domcontentloaded'</code> — DOM đã parse xong (không đợi ảnh, CSS)</li>
+        <li><code>'networkidle'</code> — không có request nào trong 500ms gần nhất</li>
+      </ul>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> page.<span class="tk-fn">goto</span>(<span class="tk-str">'/'</span>);
+<span class="tk-kw">await</span> page.<span class="tk-fn">waitForLoadState</span>(<span class="tk-str">'networkidle'</span>); <span class="tk-com">// đợi mọi request xong</span></pre></div>
+      <div class="callout warn">
+        <div class="callout-label">Lưu ý</div>
+        <p><code>networkidle</code> dễ làm test chậm và flaky nếu app có polling/websocket. Ưu tiên đợi element cụ thể (<code>toBeVisible</code>) thay vì network state.</p>
+      </div>
+
+      <h3><code>page.waitForFunction</code> — đợi điều kiện JS</h3>
+      <p>Đợi đến khi 1 biểu thức JS trả về truthy. Dùng khi cần check state phức tạp không có locator tương ứng.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Đợi biến global xuất hiện</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">waitForFunction</span>(() => window.<span class="tk-fn">dataLoaded</span> === <span class="tk-kw">true</span>);
+
+<span class="tk-com">// Đợi list có ít nhất 10 item</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">waitForFunction</span>(() =>
+  document.<span class="tk-fn">querySelectorAll</span>(<span class="tk-str">'.item'</span>).length >= <span class="tk-num">10</span>
+);</pre></div>
+
+      <h3><code>page.waitForSelector</code> — đợi element xuất hiện (cũ)</h3>
+      <p>Trước đây dùng để đợi element. Giờ <strong>nên dùng locator + assertion</strong> thay vì waitForSelector.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// ❌ Cũ</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">waitForSelector</span>(<span class="tk-str">'.item'</span>);
+
+<span class="tk-com">// ✅ Mới — gọn hơn, không bị deprecated</span>
+<span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">locator</span>(<span class="tk-str">'.item'</span>)).<span class="tk-fn">toBeVisible</span>();</pre></div>
     </section>
 
     <section>
@@ -1171,10 +1486,14 @@ test(<span class="tk-str">'login sai password hiện lỗi'</span>, <span class=
     <p class="page-subtitle">Playwright không chỉ test UI — nó cũng can thiệp được network: mock API, test endpoint trực tiếp, kiểm tra request đã gửi.</p>
 
     <section>
-      <h2><span class="section-num">10.1</span> Mock API response</h2>
+      <h2><span class="section-num">10.1</span> Mock API response với <code>page.route</code></h2>
+      <p><code>page.route</code> cho phép bạn <strong>chặn</strong> request từ trang trước khi nó đi đến server thật, rồi quyết định: trả về data giả, sửa request, hoặc cho đi tiếp. Cực hữu ích để test các tình huống khó tái tạo (server lỗi, danh sách rỗng, data 1000 item...).</p>
+
+      <h3><code>route.fulfill</code> — trả về response giả</h3>
+      <p>Dừng request và trả về data tự định nghĩa. Trang sẽ nhận data đó như thật.</p>
       <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
 <pre>test(<span class="tk-str">'hiển thị khi API trả 0 sản phẩm'</span>, <span class="tk-kw">async</span> ({ page }) => {
-  <span class="tk-com">// Chặn request, trả về data giả</span>
+  <span class="tk-com">// Chặn request đến /api/products, trả về data rỗng</span>
   <span class="tk-kw">await</span> page.<span class="tk-fn">route</span>(<span class="tk-str">'**/api/products'</span>, <span class="tk-kw">async</span> route => {
     <span class="tk-kw">await</span> route.<span class="tk-fn">fulfill</span>({
       status: <span class="tk-num">200</span>,
@@ -1186,39 +1505,124 @@ test(<span class="tk-str">'login sai password hiện lỗi'</span>, <span class=
   <span class="tk-kw">await</span> page.<span class="tk-fn">goto</span>(<span class="tk-str">'/shop'</span>);
   <span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByText</span>(<span class="tk-str">'Không có sản phẩm'</span>)).<span class="tk-fn">toBeVisible</span>();
 });</pre></div>
+
+      <h3>Test lỗi server với <code>route.fulfill</code> status 500</h3>
+      <p>Một trong những use-case quan trọng nhất — bình thường rất khó test:</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre>test(<span class="tk-str">'hiển thị thông báo lỗi khi API 500'</span>, <span class="tk-kw">async</span> ({ page }) => {
+  <span class="tk-kw">await</span> page.<span class="tk-fn">route</span>(<span class="tk-str">'**/api/checkout'</span>, route =>
+    route.<span class="tk-fn">fulfill</span>({ status: <span class="tk-num">500</span>, body: <span class="tk-str">'Server error'</span> })
+  );
+
+  <span class="tk-kw">await</span> page.<span class="tk-fn">goto</span>(<span class="tk-str">'/cart'</span>);
+  <span class="tk-kw">await</span> page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>, { name: <span class="tk-str">'Thanh toán'</span> }).<span class="tk-fn">click</span>();
+  <span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByText</span>(<span class="tk-str">'Có lỗi xảy ra, thử lại'</span>)).<span class="tk-fn">toBeVisible</span>();
+});</pre></div>
+
+      <h3><code>route.continue</code> — sửa request rồi gửi đi thật</h3>
+      <p>Cho request đi tiếp đến server nhưng có thể sửa header, body, URL.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Thêm header xác thực vào mọi request API</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">route</span>(<span class="tk-str">'**/api/**'</span>, route => {
+  route.<span class="tk-fn">continue</span>({
+    headers: {
+      ...route.<span class="tk-fn">request</span>().<span class="tk-fn">headers</span>(),
+      <span class="tk-str">'Authorization'</span>: <span class="tk-str">'Bearer test-token'</span>,
+    },
+  });
+});</pre></div>
+
+      <h3><code>route.abort</code> — chặn không cho gọi</h3>
+      <p>Hủy request hoàn toàn. Tốt để test khi ảnh không load, ads bị block, hay network fail.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-com">// Chặn tất cả ảnh để test chạy nhanh hơn</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">route</span>(<span class="tk-str">'**/*.{png,jpg,jpeg,gif,webp}'</span>, route => route.<span class="tk-fn">abort</span>());
+
+<span class="tk-com">// Test khi 3rd party script bị block</span>
+<span class="tk-kw">await</span> page.<span class="tk-fn">route</span>(<span class="tk-str">'**/google-analytics.com/**'</span>, route => route.<span class="tk-fn">abort</span>());</pre></div>
     </section>
 
     <section>
       <h2><span class="section-num">10.2</span> Pure API test (không cần browser)</h2>
+      <p>Playwright có thể gọi API trực tiếp như Postman, không cần mở browser. Tốt cho:</p>
+      <ul>
+        <li>Test endpoint API riêng biệt</li>
+        <li>Setup data trước test UI (vd: tạo user qua API → login UI)</li>
+        <li>Verify backend song song với UI</li>
+      </ul>
+
+      <h3><code>request.post</code> / <code>request.get</code> / ...</h3>
       <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
 <pre>test(<span class="tk-str">'API: tạo user'</span>, <span class="tk-kw">async</span> ({ request }) => {
   <span class="tk-kw">const</span> response = <span class="tk-kw">await</span> request.<span class="tk-fn">post</span>(<span class="tk-str">'/api/users'</span>, {
     data: { name: <span class="tk-str">'Hoa'</span>, email: <span class="tk-str">'hoa@x.com'</span> },
+    headers: { <span class="tk-str">'Authorization'</span>: <span class="tk-str">'Bearer token123'</span> },
   });
 
   <span class="tk-fn">expect</span>(response.<span class="tk-fn">status</span>()).<span class="tk-fn">toBe</span>(<span class="tk-num">201</span>);
+  <span class="tk-fn">expect</span>(response.<span class="tk-fn">ok</span>()).<span class="tk-fn">toBeTruthy</span>();
 
   <span class="tk-kw">const</span> body = <span class="tk-kw">await</span> response.<span class="tk-fn">json</span>();
   <span class="tk-fn">expect</span>(body.name).<span class="tk-fn">toBe</span>(<span class="tk-str">'Hoa'</span>);
+});</pre></div>
+
+      <h3>Các method khác</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre><span class="tk-kw">await</span> request.<span class="tk-fn">get</span>(<span class="tk-str">'/api/users/1'</span>);
+<span class="tk-kw">await</span> request.<span class="tk-fn">put</span>(<span class="tk-str">'/api/users/1'</span>, { data: { name: <span class="tk-str">'New name'</span> } });
+<span class="tk-kw">await</span> request.<span class="tk-fn">patch</span>(<span class="tk-str">'/api/users/1'</span>, { data: { age: <span class="tk-num">30</span> } });
+<span class="tk-kw">await</span> request.<span class="tk-fn">delete</span>(<span class="tk-str">'/api/users/1'</span>);
+
+<span class="tk-com">// Query params</span>
+<span class="tk-kw">await</span> request.<span class="tk-fn">get</span>(<span class="tk-str">'/api/users'</span>, {
+  params: { page: <span class="tk-num">2</span>, limit: <span class="tk-num">20</span> },
+});</pre></div>
+
+      <h3>Setup data trước test UI</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre>test(<span class="tk-str">'user đã có order xem được lịch sử'</span>, <span class="tk-kw">async</span> ({ page, request }) => {
+  <span class="tk-com">// Setup: tạo order qua API (nhanh hơn click qua UI)</span>
+  <span class="tk-kw">await</span> request.<span class="tk-fn">post</span>(<span class="tk-str">'/api/orders'</span>, {
+    data: { userId: <span class="tk-num">1</span>, items: [<span class="tk-str">'iPhone'</span>] },
+  });
+
+  <span class="tk-com">// Test: vào trang lịch sử, kiểm tra hiển thị</span>
+  <span class="tk-kw">await</span> page.<span class="tk-fn">goto</span>(<span class="tk-str">'/orders'</span>);
+  <span class="tk-kw">await</span> <span class="tk-fn">expect</span>(page.<span class="tk-fn">getByText</span>(<span class="tk-str">'iPhone'</span>)).<span class="tk-fn">toBeVisible</span>();
 });</pre></div>
     </section>
 
     <section>
       <h2><span class="section-num">10.3</span> Kiểm tra request được gửi đi</h2>
+      <p>Đôi khi bạn cần verify "click nút này có thật sự gọi API kia với đúng payload không". Dùng <code>waitForRequest</code> kết hợp với action.</p>
+
+      <h3>Pattern: <code>Promise.all</code> + <code>waitForRequest</code></h3>
+      <p>Cách an toàn: setup listener <strong>trước</strong> khi action xảy ra (vì request có thể nhanh hơn code Promise tiếp theo).</p>
       <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
 <pre>test(<span class="tk-str">'click submit gửi đúng payload'</span>, <span class="tk-kw">async</span> ({ page }) => {
   <span class="tk-kw">await</span> page.<span class="tk-fn">goto</span>(<span class="tk-str">'/contact'</span>);
+  <span class="tk-kw">await</span> page.<span class="tk-fn">getByLabel</span>(<span class="tk-str">'Tên'</span>).<span class="tk-fn">fill</span>(<span class="tk-str">'Hoa'</span>);
 
-  <span class="tk-com">// Đợi request đồng thời thực hiện action</span>
+  <span class="tk-com">// Đợi request gửi đi đồng thời click submit</span>
   <span class="tk-kw">const</span> [request] = <span class="tk-kw">await</span> Promise.<span class="tk-fn">all</span>([
     page.<span class="tk-fn">waitForRequest</span>(<span class="tk-str">'**/api/contact'</span>),
     page.<span class="tk-fn">getByRole</span>(<span class="tk-str">'button'</span>, { name: <span class="tk-str">'Gửi'</span> }).<span class="tk-fn">click</span>(),
   ]);
 
+  <span class="tk-com">// Verify payload</span>
+  <span class="tk-fn">expect</span>(request.<span class="tk-fn">method</span>()).<span class="tk-fn">toBe</span>(<span class="tk-str">'POST'</span>);
   <span class="tk-fn">expect</span>(request.<span class="tk-fn">postDataJSON</span>()).<span class="tk-fn">toMatchObject</span>({
     name: <span class="tk-str">'Hoa'</span>,
   });
 });</pre></div>
+
+      <h3>Truy cập thông tin request</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">typescript</span><button class="code-copy">Copy</button></div>
+<pre>request.<span class="tk-fn">url</span>();           <span class="tk-com">// URL đầy đủ</span>
+request.<span class="tk-fn">method</span>();        <span class="tk-com">// GET, POST, PUT, ...</span>
+request.<span class="tk-fn">headers</span>();       <span class="tk-com">// object { header: value }</span>
+request.<span class="tk-fn">postData</span>();      <span class="tk-com">// body dạng string</span>
+request.<span class="tk-fn">postDataJSON</span>();  <span class="tk-com">// body parse JSON</span></pre></div>
     </section>
   </div>
 
@@ -1523,12 +1927,16 @@ const CATEGORY_HOME_PAGE = {
 const COMMAND_CATEGORIES = [
   { cat: 'locator',   re: /\b(getBy[A-Z]\w+)/g },
   { cat: 'filter',    re: /\.(filter|first|last|nth|and|or)\b(?=\s*[\(\.])/g },
-  { cat: 'assertion', re: /\b(toBe[A-Z]\w+|toHave[A-Z]\w+|toContain[A-Z]\w+|toMatch[A-Z]?\w*|toEqual)\b/g },
+  // Bao quát: toBeXxx, toHaveXxx, toContainXxx, toMatchXxx, toEqual, toBe, toBeNull, toBeTruthy, toBeFalsy, toBeDefined, toBeGreaterThan, toBeLessThan, toContain
+  { cat: 'assertion', re: /\b(toBe[A-Z]\w*|toBe|toHave[A-Z]\w+|toContain[A-Z]\w*|toContain|toMatch[A-Z]?\w*|toEqual)\b/g },
   { cat: 'action',    re: /\.(click|dblclick|fill|clear|press|pressSequentially|check|uncheck|selectOption|setInputFiles|hover|dragTo|scrollIntoViewIfNeeded|screenshot|focus|blur|tap|type)\b/g },
-  { cat: 'page',      re: /\bpage\.(goto|route|pause|content|keyboard|context|screenshot|locator|reload|goBack|goForward|waitForURL|waitForLoadState|waitForResponse|waitForRequest|waitForFunction|waitForTimeout|evaluate|on)\b/g },
+  { cat: 'page',      re: /\bpage\.(goto|route|pause|content|keyboard|context|screenshot|locator|reload|goBack|goForward|waitForURL|waitForLoadState|waitForResponse|waitForRequest|waitForFunction|waitForTimeout|waitForSelector|evaluate|on)\b/g },
   { cat: 'test',      re: /\btest\.(describe|beforeAll|beforeEach|afterAll|afterEach|only|skip|step|use|fixme|slow)\b/g },
   { cat: 'network',   re: /\broute\.(fulfill|continue|abort|fallback)\b/g },
+  // request fixture cho API testing
+  { cat: 'network',   re: /\brequest\.(get|post|put|patch|delete|head|fetch)\b/g },
   { cat: 'expect',    re: /\b(expect)(?=\s*\()/g },
+  { cat: 'expect',    re: /\b(expect\.soft|expect\.poll)\b/g },
 ];
 
 // Override đặc biệt: 1 vài lệnh có "nhà" cụ thể hơn category mặc định
@@ -1542,11 +1950,18 @@ const COMMAND_HOME_OVERRIDE = {
   'page.waitForLoadState':   'auto-wait',
   'page.waitForFunction':    'auto-wait',
   'page.waitForTimeout':     'auto-wait',
+  'page.waitForSelector':    'auto-wait',
   // debug
   'page.pause':              'debug',
   'page.screenshot':         'actions',
   // navigation
   'page.goto':               'first-test',
+  // request API methods → trang Network
+  'request.get':             'advanced',
+  'request.post':            'advanced',
+  'request.put':             'advanced',
+  'request.patch':           'advanced',
+  'request.delete':          'advanced',
 };
 
 function buildIndex() {
@@ -1606,7 +2021,10 @@ function buildIndex() {
         // Nếu h3 title (vd "6. getByTitle — qua thuộc tính title") có chứa tên lệnh,
         // thì đây là chỗ "giải thích chính" của lệnh → ưu tiên scroll tới h3
         const headingText = headingInfo?.text || '';
-        const isExplainedHere = headingText.toLowerCase().includes(cmd.toLowerCase());
+        // Check word-boundary để không match nhầm: "fill" không khớp "fulfill"
+        const escapedCmd = cmd.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const cmdRegex = new RegExp('(^|[^a-zA-Z0-9_])' + escapedCmd + '($|[^a-zA-Z0-9_])', 'i');
+        const isExplainedHere = cmdRegex.test(headingText);
 
         searchIndex.push({
           page: pageName,
@@ -1713,13 +2131,14 @@ function doSearch(query) {
   // Score = score khớp tên + bonus theo độ "đúng chỗ":
   //   1. isExplainedHere: h3 title nhắc đến lệnh → đây CHẮC CHẮN là chỗ giải thích (+100000)
   //   2. isHome: instance ở trang chủ của lệnh (+10000)
-  // → "getByTitle" sẽ nhảy đến h3 "6. getByTitle — qua thuộc tính title"
+  // Bonus chỉ áp dụng khi match đủ mạnh (exact/startsWith) — tránh "fill" matched "fulfill"
   const scored = searchIndex
     .map(item => {
       const matchScore = fuzzyMatch(item.title, query);
       if (matchScore === 0) return null;
-      const explainBonus = item.isExplainedHere ? 100000 : 0;
-      const homeBonus = item.isHome ? 10000 : 0;
+      const isStrongMatch = matchScore >= 500;  // exact (1000) hoặc startsWith (500)
+      const explainBonus = (isStrongMatch && item.isExplainedHere) ? 100000 : 0;
+      const homeBonus = (isStrongMatch && item.isHome) ? 10000 : 0;
       return { ...item, score: matchScore + explainBonus + homeBonus };
     })
     .filter(Boolean)
